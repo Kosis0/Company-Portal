@@ -15,6 +15,7 @@ export default function ESSDashboard({
 }) {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Employee Information State
   const [employee, setEmployee] = useState({
@@ -229,8 +230,26 @@ export default function ESSDashboard({
 
   return (
     <div style={styles.layout} className="dashboard-layout">
+      <div className="mobile-top-bar">
+        <div>
+          <h2 style={{ fontSize: "16px", margin: 0 }}>Nexus ESS</h2>
+          <p style={{ fontSize: "12px", color: "#64748b", margin: "2px 0 0" }}>
+            Employee Portal
+          </p>
+        </div>
+        <button
+          className="mobile-nav-button"
+          onClick={() => setMobileMenuOpen((prev) => !prev)}
+        >
+          ☰ Menu
+        </button>
+      </div>
+
       {/* Sidebar Navigation */}
-      <aside style={styles.sidebar} className="dashboard-sidebar">
+      <aside
+        style={styles.sidebar}
+        className={`dashboard-sidebar ${mobileMenuOpen ? "is-open" : ""}`}
+      >
         <div style={styles.brand}>
           <div style={styles.brandLogo}>N</div>
           <div>
@@ -241,7 +260,10 @@ export default function ESSDashboard({
 
         <nav style={styles.navStack}>
           <button
-            onClick={() => setActiveTab("dashboard")}
+            onClick={() => {
+              setActiveTab("dashboard");
+              setMobileMenuOpen(false);
+            }}
             style={{
               ...styles.navLink,
               ...(activeTab === "dashboard" ? styles.navActive : {}),
@@ -250,7 +272,10 @@ export default function ESSDashboard({
             🏠 Home / Dashboard
           </button>
           <button
-            onClick={() => setActiveTab("profile")}
+            onClick={() => {
+              setActiveTab("profile");
+              setMobileMenuOpen(false);
+            }}
             style={{
               ...styles.navLink,
               ...(activeTab === "profile" ? styles.navActive : {}),
@@ -259,7 +284,10 @@ export default function ESSDashboard({
             👤 My Profile
           </button>
           <button
-            onClick={() => setActiveTab("performance")}
+            onClick={() => {
+              setActiveTab("performance");
+              setMobileMenuOpen(false);
+            }}
             style={{
               ...styles.navLink,
               ...(activeTab === "performance" ? styles.navActive : {}),
@@ -268,7 +296,10 @@ export default function ESSDashboard({
             🎯 My Performance
           </button>
           <button
-            onClick={() => setActiveTab("attendance")}
+            onClick={() => {
+              setActiveTab("attendance");
+              setMobileMenuOpen(false);
+            }}
             style={{
               ...styles.navLink,
               ...(activeTab === "attendance" ? styles.navActive : {}),
@@ -277,7 +308,10 @@ export default function ESSDashboard({
             ⏱️ Time & Attendance
           </button>
           <button
-            onClick={() => setActiveTab("leave")}
+            onClick={() => {
+              setActiveTab("leave");
+              setMobileMenuOpen(false);
+            }}
             style={{
               ...styles.navLink,
               ...(activeTab === "leave" ? styles.navActive : {}),
@@ -286,7 +320,10 @@ export default function ESSDashboard({
             🌴 Leave & Absence
           </button>
           <button
-            onClick={() => setActiveTab("benefits")}
+            onClick={() => {
+              setActiveTab("benefits");
+              setMobileMenuOpen(false);
+            }}
             style={{
               ...styles.navLink,
               ...(activeTab === "benefits" ? styles.navActive : {}),
@@ -295,7 +332,10 @@ export default function ESSDashboard({
             🏥 Health & Benefits
           </button>
           <button
-            onClick={() => setActiveTab("payroll")}
+            onClick={() => {
+              setActiveTab("payroll");
+              setMobileMenuOpen(false);
+            }}
             style={{
               ...styles.navLink,
               ...(activeTab === "payroll" ? styles.navActive : {}),
@@ -304,7 +344,10 @@ export default function ESSDashboard({
             💳 Payroll & Payslips
           </button>
           <button
-            onClick={() => setActiveTab("claims")}
+            onClick={() => {
+              setActiveTab("claims");
+              setMobileMenuOpen(false);
+            }}
             style={{
               ...styles.navLink,
               ...(activeTab === "claims" ? styles.navActive : {}),
@@ -313,7 +356,10 @@ export default function ESSDashboard({
             🧾 Expenses
           </button>
           <button
-            onClick={() => setActiveTab("helpdesk")}
+            onClick={() => {
+              setActiveTab("helpdesk");
+              setMobileMenuOpen(false);
+            }}
             style={{
               ...styles.navLink,
               ...(activeTab === "helpdesk" ? styles.navActive : {}),
@@ -359,13 +405,7 @@ export default function ESSDashboard({
               </p>
             </div>
 
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "2fr 1fr",
-                gap: "24px",
-              }}
-            >
+            <div className="overview-grid">
               <div
                 style={{
                   display: "flex",
@@ -373,102 +413,109 @@ export default function ESSDashboard({
                   gap: "24px",
                 }}
               >
-                <div style={styles.card}>
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                    }}
-                  >
-                    <div>
-                      <h3 style={{ margin: "0 0 4px 0", fontSize: "18px" }}>
-                        Daily Attendance
-                      </h3>
-                      <p
-                        style={{
-                          margin: 0,
-                          color: "#64748b",
-                          fontSize: "14px",
-                        }}
-                      >
-                        August 5, 2026
-                      </p>
-                    </div>
-                    <button
-                      onClick={onClockToggle}
-                      style={{
-                        ...styles.primaryBtn,
-                        background: isClockedIn
-                          ? "linear-gradient(135deg, #ef4444, #dc2626)"
-                          : "linear-gradient(135deg, #10b981, #059669)",
-                        fontSize: "16px",
-                        padding: "12px 24px",
-                      }}
-                    >
-                      {isClockedIn ? "🕒 Clock Out" : "🕒 Clock In"}
-                    </button>
-                  </div>
-                  {isClockedIn && (
-                    <p
-                      style={{
-                        margin: "16px 0 0 0",
-                        color: "#10b981",
-                        fontWeight: "600",
-                      }}
-                    >
-                      You clocked in today at {clockInTime || "08:52 AM"}
-                    </p>
-                  )}
-                </div>
-
-                <div style={styles.card}>
-                  <h3 style={styles.cardTitle}>
-                    📢 Company Announcements & News
-                  </h3>
-                  <div
-                    style={{
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: "16px",
-                    }}
-                  >
-                    {announcements.map((ann) => (
-                      <div
-                        key={ann.id}
-                        style={{
-                          padding: "16px",
-                          border: "1px solid #e2e8f0",
-                          borderRadius: "8px",
-                        }}
-                      >
-                        <div
+                <div style={styles.card} className="mobile-accordion-card">
+                  <details className="mobile-details" open>
+                    <summary style={styles.accordionSummary}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px" }}>
+                        <div>
+                          <h3 style={{ margin: "0 0 4px 0", fontSize: "18px" }}>
+                            Daily Attendance
+                          </h3>
+                          <p
+                            style={{
+                              margin: 0,
+                              color: "#64748b",
+                              fontSize: "14px",
+                            }}
+                          >
+                            August 5, 2026
+                          </p>
+                        </div>
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            onClockToggle();
+                          }}
                           style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            marginBottom: "8px",
+                            ...styles.primaryBtn,
+                            background: isClockedIn
+                              ? "linear-gradient(135deg, #ef4444, #dc2626)"
+                              : "linear-gradient(135deg, #10b981, #059669)",
+                            fontSize: "16px",
+                            padding: "12px 24px",
                           }}
                         >
-                          <span style={{ fontWeight: "700", color: "#1e293b" }}>
-                            {ann.title}
-                          </span>
-                          <span style={{ fontSize: "12px", color: "#64748b" }}>
-                            {ann.date}
-                          </span>
-                        </div>
+                          {isClockedIn ? "🕒 Clock Out" : "🕒 Clock In"}
+                        </button>
+                      </div>
+                    </summary>
+                    <div className="mobile-accordion-content">
+                      {isClockedIn && (
                         <p
                           style={{
-                            margin: 0,
-                            fontSize: "14px",
-                            color: "#475569",
-                            lineHeight: "1.5",
+                            margin: "16px 0 0 0",
+                            color: "#10b981",
+                            fontWeight: "600",
                           }}
                         >
-                          {ann.content}
+                          You clocked in today at {clockInTime || "08:52 AM"}
                         </p>
+                      )}
+                    </div>
+                  </details>
+                </div>
+
+                <div style={styles.card} className="mobile-accordion-card">
+                  <details className="mobile-details">
+                    <summary style={styles.accordionSummary}>
+                      <h3 style={styles.cardTitle}>📢 Company Announcements & News</h3>
+                    </summary>
+                    <div className="mobile-accordion-content">
+                      <div
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: "16px",
+                        }}
+                      >
+                        {announcements.map((ann) => (
+                          <div
+                            key={ann.id}
+                            style={{
+                              padding: "16px",
+                              border: "1px solid #e2e8f0",
+                              borderRadius: "8px",
+                            }}
+                          >
+                            <div
+                              style={{
+                                display: "flex",
+                                justifyContent: "space-between",
+                                marginBottom: "8px",
+                              }}
+                            >
+                              <span style={{ fontWeight: "700", color: "#1e293b" }}>
+                                {ann.title}
+                              </span>
+                              <span style={{ fontSize: "12px", color: "#64748b" }}>
+                                {ann.date}
+                              </span>
+                            </div>
+                            <p
+                              style={{
+                                margin: 0,
+                                fontSize: "14px",
+                                color: "#475569",
+                                lineHeight: "1.5",
+                              }}
+                            >
+                              {ann.content}
+                            </p>
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
+                    </div>
+                  </details>
                 </div>
               </div>
 
@@ -479,54 +526,60 @@ export default function ESSDashboard({
                   gap: "24px",
                 }}
               >
-                <div style={styles.card}>
-                  <h3 style={styles.cardTitle}>📅 Upcoming Events</h3>
-                  <div
-                    style={{
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: "16px",
-                    }}
-                  >
-                    {events.map((ev) => (
+                <div style={styles.card} className="mobile-accordion-card">
+                  <details className="mobile-details">
+                    <summary style={styles.accordionSummary}>
+                      <h3 style={styles.cardTitle}>📅 Upcoming Events</h3>
+                    </summary>
+                    <div className="mobile-accordion-content">
                       <div
-                        key={ev.id}
                         style={{
-                          borderLeft: "4px solid #4f46e5",
-                          paddingLeft: "12px",
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: "16px",
                         }}
                       >
-                        <h4
-                          style={{
-                            margin: "0 0 4px 0",
-                            fontSize: "14px",
-                            color: "#1e293b",
-                          }}
-                        >
-                          {ev.title}
-                        </h4>
-                        <p
-                          style={{
-                            margin: "0 0 4px 0",
-                            fontSize: "12px",
-                            color: "#64748b",
-                            fontWeight: "600",
-                          }}
-                        >
-                          {ev.date} | {ev.time}
-                        </p>
-                        <p
-                          style={{
-                            margin: 0,
-                            fontSize: "13px",
-                            color: "#475569",
-                          }}
-                        >
-                          {ev.desc}
-                        </p>
+                        {events.map((ev) => (
+                          <div
+                            key={ev.id}
+                            style={{
+                              borderLeft: "4px solid #4f46e5",
+                              paddingLeft: "12px",
+                            }}
+                          >
+                            <h4
+                              style={{
+                                margin: "0 0 4px 0",
+                                fontSize: "14px",
+                                color: "#1e293b",
+                              }}
+                            >
+                              {ev.title}
+                            </h4>
+                            <p
+                              style={{
+                                margin: "0 0 4px 0",
+                                fontSize: "12px",
+                                color: "#64748b",
+                                fontWeight: "600",
+                              }}
+                            >
+                              {ev.date} | {ev.time}
+                            </p>
+                            <p
+                              style={{
+                                margin: 0,
+                                fontSize: "13px",
+                                color: "#475569",
+                              }}
+                            >
+                              {ev.desc}
+                            </p>
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
+                    </div>
+                  </details>
                 </div>
 
                 <div
@@ -536,27 +589,34 @@ export default function ESSDashboard({
                     border: "1px solid #e2e8f0",
                     boxShadow: "none",
                   }}
+                  className="mobile-accordion-card"
                 >
-                  <h3 style={styles.cardTitle}>Quick Links</h3>
-                  <ul
-                    style={{
-                      paddingLeft: "20px",
-                      margin: 0,
-                      color: "#4f46e5",
-                      fontSize: "14px",
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: "8px",
-                    }}
-                  >
-                    <li style={{ cursor: "pointer" }}>
-                      Download Employee Handbook
-                    </li>
-                    <li style={{ cursor: "pointer" }}>View Holiday Calendar</li>
-                    <li style={{ cursor: "pointer" }}>
-                      IT Security Guidelines
-                    </li>
-                  </ul>
+                  <details className="mobile-details">
+                    <summary style={styles.accordionSummary}>
+                      <h3 style={styles.cardTitle}>Quick Links</h3>
+                    </summary>
+                    <div className="mobile-accordion-content">
+                      <ul
+                        style={{
+                          paddingLeft: "20px",
+                          margin: 0,
+                          color: "#4f46e5",
+                          fontSize: "14px",
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: "8px",
+                        }}
+                      >
+                        <li style={{ cursor: "pointer" }}>
+                          Download Employee Handbook
+                        </li>
+                        <li style={{ cursor: "pointer" }}>View Holiday Calendar</li>
+                        <li style={{ cursor: "pointer" }}>
+                          IT Security Guidelines
+                        </li>
+                      </ul>
+                    </div>
+                  </details>
                 </div>
               </div>
             </div>
@@ -1717,6 +1777,13 @@ const styles = {
     border: "1px solid #e2e8f0",
     boxShadow: "0 12px 30px rgba(15, 23, 42, 0.05)",
     marginBottom: "24px",
+  },
+  accordionSummary: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    cursor: "pointer",
+    listStyle: "none",
   },
   cardTitle: {
     fontSize: "15px",

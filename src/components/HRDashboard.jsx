@@ -13,6 +13,7 @@ export default function HRDashboard({
   onUpdateTicketStatus,
 }) {
   const [activeTab, setActiveTab] = useState("overview");
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // --- STATE MANAGEMENT ---
 
@@ -277,8 +278,26 @@ export default function HRDashboard({
 
   return (
     <div style={styles.layout} className="dashboard-layout">
+      <div className="mobile-top-bar">
+        <div>
+          <h2 style={{ fontSize: "16px", margin: 0 }}>Nexus HR</h2>
+          <p style={{ fontSize: "12px", color: "#64748b", margin: "2px 0 0" }}>
+            People Operations
+          </p>
+        </div>
+        <button
+          className="mobile-nav-button"
+          onClick={() => setMobileMenuOpen((prev) => !prev)}
+        >
+          ☰ Menu
+        </button>
+      </div>
+
       {/* Sidebar Navigation */}
-      <aside style={styles.sidebar} className="dashboard-sidebar">
+      <aside
+        style={styles.sidebar}
+        className={`dashboard-sidebar ${mobileMenuOpen ? "is-open" : ""}`}
+      >
         <div style={styles.brand}>
           <div style={styles.brandLogo}>N</div>
           <div>
@@ -289,7 +308,10 @@ export default function HRDashboard({
 
         <nav style={styles.navStack}>
           <button
-            onClick={() => setActiveTab("overview")}
+            onClick={() => {
+              setActiveTab("overview");
+              setMobileMenuOpen(false);
+            }}
             style={{
               ...styles.navLink,
               ...(activeTab === "overview" ? styles.navActive : {}),
@@ -298,7 +320,10 @@ export default function HRDashboard({
             📊 HR Overview
           </button>
           <button
-            onClick={() => setActiveTab("employees")}
+            onClick={() => {
+              setActiveTab("employees");
+              setMobileMenuOpen(false);
+            }}
             style={{
               ...styles.navLink,
               ...(activeTab === "employees" ? styles.navActive : {}),
@@ -316,7 +341,10 @@ export default function HRDashboard({
             ⏱️ Attendance & Overtime
           </button>
           <button
-            onClick={() => setActiveTab("leave")}
+            onClick={() => {
+              setActiveTab("leave");
+              setMobileMenuOpen(false);
+            }}
             style={{
               ...styles.navLink,
               ...(activeTab === "leave" ? styles.navActive : {}),
@@ -325,7 +353,10 @@ export default function HRDashboard({
             🌴 Leave Requests
           </button>
           <button
-            onClick={() => setActiveTab("benefits")}
+            onClick={() => {
+              setActiveTab("benefits");
+              setMobileMenuOpen(false);
+            }}
             style={{
               ...styles.navLink,
               ...(activeTab === "benefits" ? styles.navActive : {}),
@@ -420,118 +451,113 @@ export default function HRDashboard({
               </div>
             </div>
 
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "2fr 1fr",
-                gap: "24px",
-                marginTop: "24px",
-              }}
-            >
-              <div style={styles.card}>
-                <h3 style={styles.cardTitle}>
-                  Immediate Approval Action Items
-                </h3>
-                <div
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "12px",
-                  }}
-                >
-                  {leaveRequests
-                    .filter((r) => r.status === "Pending")
-                    .map((req) => (
-                      <div key={req.id} style={styles.actionRow}>
-                        <div>
-                          <span style={{ fontWeight: "700", color: "#1e293b" }}>
-                            {req.name}
-                          </span>{" "}
-                          —{" "}
-                          <span style={{ fontSize: "13px", color: "#4f46e5" }}>
-                            {req.type}
-                          </span>
-                          <p
-                            style={{
-                              margin: "2px 0 0 0",
-                              fontSize: "12px",
-                              color: "#64748b",
-                            }}
-                          >
-                            {req.dates} ({req.days} days) • Reason: {req.reason}
-                          </p>
-                        </div>
-                        <div style={{ display: "flex", gap: "8px" }}>
-                          <button
-                            onClick={() =>
-                              onUpdateStatus(req.id, "Approved")
-                            }
-                            style={styles.approveBtn}
-                          >
-                            Approve
-                          </button>
-                          <button
-                            onClick={() =>
-                              onUpdateStatus(req.id, "Rejected")
-                            }
-                            style={styles.rejectBtn}
-                          >
-                            Reject
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  {leaveRequests.filter((r) => r.status === "Pending")
-                    .length === 0 && (
-                    <p
-                      style={{ margin: 0, color: "#64748b", fontSize: "13px" }}
+            <div className="overview-grid" style={{ marginTop: "24px" }}>
+              <div style={styles.card} className="mobile-accordion-card">
+                <details className="mobile-details" open>
+                  <summary style={styles.accordionSummary}>
+                    <h3 style={styles.cardTitle}>Immediate Approval Action Items</h3>
+                  </summary>
+                  <div className="mobile-accordion-content">
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "12px",
+                      }}
                     >
-                      No pending leave approvals.
-                    </p>
-                  )}
-                </div>
+                      {leaveRequests
+                        .filter((r) => r.status === "Pending")
+                        .map((req) => (
+                          <div key={req.id} style={styles.actionRow}>
+                            <div>
+                              <span style={{ fontWeight: "700", color: "#1e293b" }}>
+                                {req.name}
+                              </span>{" "}
+                              —{" "}
+                              <span style={{ fontSize: "13px", color: "#4f46e5" }}>
+                                {req.type}
+                              </span>
+                              <p
+                                style={{
+                                  margin: "2px 0 0 0",
+                                  fontSize: "12px",
+                                  color: "#64748b",
+                                }}
+                              >
+                                {req.dates} ({req.days} days) • Reason: {req.reason}
+                              </p>
+                            </div>
+                            <div style={{ display: "flex", gap: "8px" }}>
+                              <button
+                                onClick={() =>
+                                  onUpdateStatus(req.id, "Approved")
+                                }
+                                style={styles.approveBtn}
+                              >
+                                Approve
+                              </button>
+                              <button
+                                onClick={() =>
+                                  onUpdateStatus(req.id, "Rejected")
+                                }
+                                style={styles.rejectBtn}
+                              >
+                                Reject
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      {leaveRequests.filter((r) => r.status === "Pending")
+                        .length === 0 && (
+                        <p
+                          style={{ margin: 0, color: "#64748b", fontSize: "13px" }}
+                        >
+                          No pending leave approvals.
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </details>
               </div>
 
-              <div style={styles.card}>
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    marginBottom: "16px",
-                  }}
-                >
-                  <h3 style={styles.cardTitle}>HR Notifications</h3>
-                  <span style={styles.notificationBadge}>
-                    {pendingNotificationCount} new
-                  </span>
-                </div>
-
-                <div
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "10px",
-                  }}
-                >
-                  {notifications.slice(0, 4).map((item) => (
-                    <div key={item.id} style={styles.notificationItem}>
-                      <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-                        <span style={styles.notificationType}>{item.type}</span>
-                        <strong style={{ fontSize: "13px", color: "#0f172a" }}>
-                          {item.title}
-                        </strong>
-                      </div>
-                      <p style={{ marginTop: "4px", fontSize: "12px" }}>{item.meta}</p>
+              <div style={styles.card} className="mobile-accordion-card">
+                <details className="mobile-details" open>
+                  <summary style={styles.accordionSummary}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px", width: "100%" }}>
+                      <h3 style={styles.cardTitle}>HR Notifications</h3>
+                      <span style={styles.notificationBadge}>
+                        {pendingNotificationCount} new
+                      </span>
                     </div>
-                  ))}
+                  </summary>
+                  <div className="mobile-accordion-content">
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "10px",
+                      }}
+                    >
+                      {notifications.slice(0, 4).map((item) => (
+                        <div key={item.id} style={styles.notificationItem}>
+                          <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                            <span style={styles.notificationType}>{item.type}</span>
+                            <strong style={{ fontSize: "13px", color: "#0f172a" }}>
+                              {item.title}
+                            </strong>
+                          </div>
+                          <p style={{ marginTop: "4px", fontSize: "12px" }}>{item.meta}</p>
+                        </div>
+                      ))}
 
-                  {notifications.length === 0 && (
-                    <p style={{ margin: 0, fontSize: "13px" }}>
-                      No new requests right now.
-                    </p>
-                  )}
-                </div>
+                      {notifications.length === 0 && (
+                        <p style={{ margin: 0, fontSize: "13px" }}>
+                          No new requests right now.
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </details>
               </div>
             </div>
           </div>
