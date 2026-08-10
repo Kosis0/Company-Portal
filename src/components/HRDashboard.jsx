@@ -293,6 +293,11 @@ export default function HRDashboard({
         </button>
       </div>
 
+      <div
+        className={`mobile-backdrop ${mobileMenuOpen ? "is-open" : ""}`}
+        onClick={() => setMobileMenuOpen(false)}
+      />
+
       {/* Sidebar Navigation */}
       <aside
         style={styles.sidebar}

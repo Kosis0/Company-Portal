@@ -245,6 +245,11 @@ export default function ESSDashboard({
         </button>
       </div>
 
+      <div
+        className={`mobile-backdrop ${mobileMenuOpen ? "is-open" : ""}`}
+        onClick={() => setMobileMenuOpen(false)}
+      />
+
       {/* Sidebar Navigation */}
       <aside
         style={styles.sidebar}
