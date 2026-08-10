@@ -276,9 +276,9 @@ export default function HRDashboard({
   };
 
   return (
-    <div style={styles.layout}>
+    <div style={styles.layout} className="dashboard-layout">
       {/* Sidebar Navigation */}
-      <aside style={styles.sidebar}>
+      <aside style={styles.sidebar} className="dashboard-sidebar">
         <div style={styles.brand}>
           <div style={styles.brandLogo}>N</div>
           <div>
@@ -378,7 +378,7 @@ export default function HRDashboard({
       </aside>
 
       {/* Main Content Area */}
-      <main style={styles.mainContent}>
+      <main style={styles.mainContent} className="dashboard-main-content">
         {/* 1. OVERVIEW TAB */}
         {activeTab === "overview" && (
           <div>

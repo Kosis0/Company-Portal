@@ -228,9 +228,9 @@ export default function ESSDashboard({
   };
 
   return (
-    <div style={styles.layout}>
+    <div style={styles.layout} className="dashboard-layout">
       {/* Sidebar Navigation */}
-      <aside style={styles.sidebar}>
+      <aside style={styles.sidebar} className="dashboard-sidebar">
         <div style={styles.brand}>
           <div style={styles.brandLogo}>N</div>
           <div>
@@ -346,7 +346,7 @@ export default function ESSDashboard({
       </aside>
 
       {/* Main Content Area */}
-      <main style={styles.mainContent}>
+      <main style={styles.mainContent} className="dashboard-main-content">
         {/* DASHBOARD TAB */}
         {activeTab === "dashboard" && (
           <div>
