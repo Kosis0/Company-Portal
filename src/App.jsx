@@ -1,33 +1,85 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import ESSDashboard from "./components/ESSDashboard";
 import HRDashboard from "./components/HRDashboard";
 import Login from "./components/Login";
+import "./App.css";
 
 export default function App() {
   const [role, setRole] = useState(null);
   const [profile, setProfile] = useState(null);
+  const [theme, setTheme] = useState(() => localStorage.getItem("nexus_theme") || "light");
+  const [toasts, setToasts] = useState([]);
+
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+    localStorage.setItem("nexus_theme", theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme((prev) => (prev === "light" ? "dark" : "light"));
+  };
+
+  const addToast = (title, message, type = "info") => {
+    const id = Date.now();
+    setToasts((prev) => [...prev, { id, title, message, type }]);
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((t) => t.id !== id));
+    }, 4000);
+  };
 
   // Shared state across both dashboards
   const [leaveRequests, setLeaveRequests] = useState([
     {
-      id: 1,
+      id: 101,
       employee: "Udeh Kosisochukwu",
       name: "Udeh Kosisochukwu",
       type: "Annual Leave",
-      dates: "2026-08-10 - 2026-08-15",
-      days: 5,
-      reason: "Personal Vacation",
+      dates: "2026-08-18 - 2026-08-25",
+      days: 6,
+      reason: "Summer vacation and family rest",
       status: "Pending",
+      appliedOn: "2026-08-10",
+    },
+    {
+      id: 102,
+      employee: "Sarah Chen",
+      name: "Sarah Chen",
+      type: "Sick Leave",
+      dates: "2026-08-01 - 2026-08-02",
+      days: 2,
+      reason: "Flu recovery",
+      status: "Approved",
+      appliedOn: "2026-07-31",
+    },
+    {
+      id: 103,
+      employee: "Alex Rivera",
+      name: "Alex Rivera",
+      type: "Casual Leave",
+      dates: "2026-07-15 - 2026-07-16",
+      days: 1,
+      reason: "Personal appointment",
+      status: "Approved",
+      appliedOn: "2026-07-12",
     },
   ]);
 
   const [announcements, setAnnouncements] = useState([
     {
       id: 1,
-      title: "Company Townhall Meeting",
-      date: "Aug 10, 2026",
+      title: "Company Q3 Townhall Meeting",
+      date: "Aug 15, 2026",
       type: "Important",
-      content: "Mandatory virtual meeting for all staff.",
+      author: "People Operations",
+      content: "Mandatory virtual townhall to outline Q3 goals, team achievements, and benefits upgrades.",
+    },
+    {
+      id: 2,
+      title: "Updated HMO Clinic Network Coverage",
+      date: "Aug 08, 2026",
+      type: "General",
+      author: "HR Benefits Admin",
+      content: "Axa Mansard has expanded primary healthcare centers across Lagos and Port Harcourt.",
     },
   ]);
 
@@ -40,8 +92,22 @@ export default function App() {
       gross: "$3,500.00",
       tax: "$400.00",
       pension: "$150.00",
-      net: "$2,950.00",
-      amount: "$2,950.00",
+      medical: "$50.00",
+      net: "$2,900.00",
+      amount: "$2,900.00",
+      status: "Paid",
+    },
+    {
+      id: 2,
+      employee: "Udeh Kosisochukwu",
+      month: "June 2026",
+      payDate: "2026-06-27",
+      gross: "$3,500.00",
+      tax: "$400.00",
+      pension: "$150.00",
+      medical: "$50.00",
+      net: "$2,900.00",
+      amount: "$2,900.00",
       status: "Paid",
     },
   ]);
@@ -51,11 +117,23 @@ export default function App() {
       id: 1,
       employee: "Udeh Kosisochukwu",
       name: "Udeh Kosisochukwu",
-      category: "Travel Expense",
+      category: "Internet & Data Allowance",
       amount: "$150",
       date: "2026-08-01",
-      description: "Client visit mileage and transport",
+      description: "Monthly fiber internet subscription for remote setup",
       status: "Pending",
+      receipt: "internet_receipt_aug.pdf",
+    },
+    {
+      id: 2,
+      employee: "Sarah Chen",
+      name: "Sarah Chen",
+      category: "Client Transport",
+      amount: "$85",
+      date: "2026-08-04",
+      description: "Taxi mileage for partner sync meeting",
+      status: "Approved",
+      receipt: "taxi_voucher.pdf",
     },
   ]);
 
@@ -63,12 +141,24 @@ export default function App() {
     {
       id: "TCK-401",
       name: "Udeh Kosisochukwu Emmanuel",
-      subject: "Request for New Laptop Battery",
+      subject: "Request for Replacement Workstation Battery",
       category: "IT Hardware",
-      date: "2026-06-15",
+      date: "2026-08-05",
       priority: "High",
       status: "In Progress",
-      details: "HP EliteBook battery replacement requested due to physical swelling.",
+      assignedTo: "Dennis V. (IT Support)",
+      details: "Laptop battery degradation causing rapid shutdown without charger plugged in.",
+    },
+    {
+      id: "TCK-388",
+      name: "Sarah Chen",
+      subject: "VPN Access Grant for New Staging Server",
+      category: "Network & Security",
+      date: "2026-08-02",
+      priority: "Medium",
+      status: "Resolved",
+      assignedTo: "Infra Security Team",
+      details: "Requesting developer IP whitelist for staging environment deployment.",
     },
   ]);
 
@@ -77,21 +167,21 @@ export default function App() {
       id: 1,
       empId: "EMP-2026-042",
       name: "Udeh Kosisochukwu",
-      date: "2026-08-05",
+      date: "2026-08-11",
       in: "08:45 AM",
-      out: "05:30 PM",
-      total: "8h 45m",
-      overtime: "45m",
+      out: "—",
+      total: "3h 30m (In Progress)",
+      overtime: "0m",
       status: "On Time",
     },
     {
       id: 2,
       empId: "EMP-2026-018",
       name: "Sarah Chen",
-      date: "2026-08-05",
+      date: "2026-08-11",
       in: "08:30 AM",
       out: "—",
-      total: "4h 15m (In Progress)",
+      total: "3h 45m (In Progress)",
       overtime: "0m",
       status: "On Time",
     },
@@ -99,10 +189,10 @@ export default function App() {
       id: 3,
       empId: "EMP-2026-009",
       name: "Alex Rivera",
-      date: "2026-08-05",
+      date: "2026-08-11",
       in: "09:20 AM",
       out: "—",
-      total: "3h 25m (In Progress)",
+      total: "2h 55m (In Progress)",
       overtime: "0m",
       status: "Late",
     },
@@ -115,97 +205,78 @@ export default function App() {
     date: new Date().toISOString().split("T")[0],
   });
 
-  const timeToMinutes = (value) => {
-    if (!value || value === "—") return null;
-    const [timePart, meridiem] = value.split(" ");
-    const [hours, minutes] = timePart.split(":").map(Number);
-    let total = hours * 60 + minutes;
-
-    if (meridiem?.toUpperCase() === "PM" && hours !== 12) total += 12 * 60;
-    if (meridiem?.toUpperCase() === "AM" && hours === 12) total -= 12 * 60;
-
-    return total;
-  };
-
-  const formatDuration = (minutes) => {
-    const safeMinutes = Math.max(0, Math.round(minutes));
-    const hours = Math.floor(safeMinutes / 60);
-    const mins = safeMinutes % 60;
-    return `${hours}h ${mins.toString().padStart(2, "0")}m`;
-  };
-
-  const formatOvertime = (minutes) => {
-    const overtime = Math.max(0, minutes - 8 * 60);
-    return overtime > 0 ? formatDuration(overtime) : "0m";
-  };
-
-  // Handlers for adding/updating data
   const handleAddLeave = (req) => {
-    const [startDate, endDate] = String(req.dates || "").split("-").map((part) => part.trim());
-    const parsedStart = startDate ? new Date(startDate) : null;
-    const parsedEnd = endDate ? new Date(endDate) : null;
-    const days = parsedStart && parsedEnd
-      ? Math.max(1, Math.ceil((parsedEnd - parsedStart) / (1000 * 60 * 60 * 24)) + 1)
-      : 1;
-
     setLeaveRequests((prev) => [
       {
         id: Date.now(),
-        employee: "Udeh Kosisochukwu",
-        name: "Udeh Kosisochukwu",
+        employee: profile?.name || "Udeh Kosisochukwu",
+        name: profile?.name || "Udeh Kosisochukwu",
         status: "Pending",
-        days,
+        appliedOn: new Date().toISOString().split("T")[0],
         ...req,
       },
       ...prev,
     ]);
+    addToast("Leave Applied", "Your leave request has been submitted for HR approval.", "success");
   };
 
-  const handleUpdateLeave = (id, status) =>
+  const handleUpdateLeave = (id, status) => {
     setLeaveRequests((prev) => prev.map((r) => (r.id === id ? { ...r, status } : r)));
+    addToast("Leave Request Updated", `Request marked as ${status}.`, "info");
+  };
 
-  const handleAddAnnouncement = (ann) =>
-    setAnnouncements((prev) => [{ id: Date.now(), ...ann }, ...prev]);
+  const handleAddAnnouncement = (ann) => {
+    setAnnouncements((prev) => [
+      { id: Date.now(), date: new Date().toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" }), ...ann },
+      ...prev,
+    ]);
+    addToast("Announcement Published", "New notice added for all employees.", "success");
+  };
 
-  const handleAddClaim = (claim) =>
+  const handleAddClaim = (claim) => {
     setClaims((prev) => [
       {
         id: Date.now(),
-        employee: "Udeh Kosisochukwu",
-        name: "Udeh Kosisochukwu",
+        employee: profile?.name || "Udeh Kosisochukwu",
+        name: profile?.name || "Udeh Kosisochukwu",
         date: new Date().toISOString().split("T")[0],
         status: "Pending",
+        receipt: claim.receiptName || "receipt_attachment.pdf",
         ...claim,
       },
       ...prev,
     ]);
+    addToast("Reimbursement Submitted", "Claim sent to HR Finance for audit.", "success");
+  };
 
-  const handleUpdateClaim = (id, status) =>
+  const handleUpdateClaim = (id, status) => {
     setClaims((prev) => prev.map((c) => (c.id === id ? { ...c, status } : c)));
+    addToast("Claim Updated", `Expense claim status changed to ${status}.`, "info");
+  };
 
   const handleAddTicket = (ticket) => {
     setTickets((prev) => [
       {
         id: `TCK-${Math.floor(100 + Math.random() * 900)}`,
-        name: "Udeh Kosisochukwu Emmanuel",
-        priority: "Medium",
+        name: profile?.name || "Udeh Kosisochukwu Emmanuel",
         date: new Date().toISOString().split("T")[0],
         status: "Open",
+        assignedTo: "Unassigned Queue",
         ...ticket,
       },
       ...prev,
     ]);
+    addToast("Support Ticket Created", "Ticket logged into the IT/HR queue.", "success");
   };
 
-  const handleUpdateTicketStatus = (id, status) =>
+  const handleUpdateTicketStatus = (id, status) => {
     setTickets((prev) => prev.map((ticket) => (ticket.id === id ? { ...ticket, status } : ticket)));
+    addToast("Ticket Status Updated", `Ticket ${id} marked as ${status}.`, "info");
+  };
 
   const handleClockToggle = () => {
     const today = new Date().toISOString().split("T")[0];
-    const now = new Date().toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+    const now = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
     if (!attendanceStatus.isClockedIn) {
       setAttendanceStatus({
@@ -215,93 +286,54 @@ export default function App() {
         date: today,
       });
 
-      setAttendanceRecords((prev) => {
-        const existingToday = prev.find(
-          (record) => record.empId === "EMP-2026-042" && record.date === today
-        );
+      setAttendanceRecords((prev) => [
+        {
+          id: Date.now(),
+          empId: "EMP-2026-042",
+          name: profile?.name || "Udeh Kosisochukwu",
+          date: today,
+          in: now,
+          out: "—",
+          total: "0h 00m (In Progress)",
+          overtime: "0m",
+          status: "On Time",
+        },
+        ...prev.filter((r) => !(r.empId === "EMP-2026-042" && r.date === today)),
+      ]);
 
-        if (existingToday) {
-          return prev.map((record) =>
-            record.id === existingToday.id
-              ? {
-                  ...record,
-                  in: now,
-                  out: "—",
-                  total: "0h 00m (In Progress)",
-                  overtime: "0m",
-                  status: "On Time",
-                }
-              : record
-          );
-        }
-
-        return [
-          {
-            id: Date.now(),
-            empId: "EMP-2026-042",
-            name: "Udeh Kosisochukwu",
-            date: today,
-            in: now,
-            out: "—",
-            total: "0h 00m (In Progress)",
-            overtime: "0m",
-            status: "On Time",
-          },
-          ...prev,
-        ];
+      addToast("Shift Started", `Clocked IN at ${now}`, "success");
+    } else {
+      setAttendanceStatus({
+        isClockedIn: false,
+        clockInTime: null,
+        clockOutTime: now,
+        date: today,
       });
 
-      return;
+      setAttendanceRecords((prev) =>
+        prev.map((record) =>
+          record.empId === "EMP-2026-042" && record.date === today
+            ? { ...record, out: now, total: "8h 15m", overtime: "15m" }
+            : record
+        )
+      );
+
+      addToast("Shift Ended", `Clocked OUT at ${now}`, "info");
     }
-
-    const clockInTime = attendanceStatus.clockInTime || "08:45 AM";
-    const clockInMinutes = timeToMinutes(clockInTime);
-    const clockOutMinutes = timeToMinutes(now);
-    const workedMinutes =
-      clockInMinutes !== null && clockOutMinutes !== null
-        ? Math.max(0, clockOutMinutes - clockInMinutes)
-        : 0;
-
-    setAttendanceStatus({
-      isClockedIn: false,
-      clockInTime: null,
-      clockOutTime: now,
-      date: today,
-    });
-
-    setAttendanceRecords((prev) =>
-      prev.map((record) =>
-        record.empId === "EMP-2026-042" && record.date === today
-          ? {
-              ...record,
-              out: now,
-              total: formatDuration(workedMinutes),
-              overtime: formatOvertime(workedMinutes),
-              status: "On Time",
-            }
-          : record
-      )
-    );
   };
 
-  const handleLogin = ({ email, password, selectedRole }) => {
-    const normalizedEmail = email.trim().toLowerCase();
-    const authenticatedRole =
-      normalizedEmail === "hr@company.com"
-        ? "admin"
-        : normalizedEmail === "employee@company.com"
-        ? "employee"
-        : selectedRole;
-
-    const profile = {
+  const handleLogin = ({ email, selectedRole }) => {
+    const authenticatedRole = selectedRole;
+    const userProfile = {
       name: authenticatedRole === "admin" ? "HR Administrator" : "Udeh Kosisochukwu",
-      email: normalizedEmail,
+      email,
       role: authenticatedRole,
-      team: authenticatedRole === "admin" ? "People Operations" : "Software Engineering",
+      department: authenticatedRole === "admin" ? "People Operations" : "Software Engineering",
     };
 
     setRole(authenticatedRole);
-    setProfile(profile);
+    setProfile(userProfile);
+    addToast("Signed In", `Welcome back, ${userProfile.name}`, "success");
   };
 
   if (!role) {
@@ -310,22 +342,24 @@ export default function App() {
 
   return (
     <div>
-      {/* Floating View Switcher */}
-      <div style={switcherStyle}>
-        <span>Signed in as: <strong>{profile?.name || "User"}</strong></span>
-        <span>Role: <strong>{role.toUpperCase()}</strong></span>
-        <button
-          onClick={() => {
-            setRole(null);
-            setProfile(null);
-          }}
-        >
-          Sign Out
-        </button>
+      {/* Toast Notification Popups */}
+      <div className="toast-container">
+        {toasts.map((t) => (
+          <div key={t.id} className={`toast toast-${t.type}`}>
+            <div className="toast-content">
+              <h4>{t.title}</h4>
+              <p>{t.message}</p>
+            </div>
+          </div>
+        ))}
       </div>
 
+      {/* Main Active Dashboard */}
       {role === "employee" ? (
         <ESSDashboard
+          profile={profile}
+          theme={theme}
+          onToggleTheme={toggleTheme}
           leaveRequests={leaveRequests}
           onSubmitLeave={handleAddLeave}
           announcements={announcements}
@@ -340,6 +374,9 @@ export default function App() {
         />
       ) : (
         <HRDashboard
+          profile={profile}
+          theme={theme}
+          onToggleTheme={toggleTheme}
           leaveRequests={leaveRequests}
           onUpdateStatus={handleUpdateLeave}
           announcements={announcements}
@@ -352,27 +389,38 @@ export default function App() {
           onUpdateTicketStatus={handleUpdateTicketStatus}
         />
       )}
+
+      {/* Floating View & Persona Switcher */}
+      <div className="floating-role-switcher">
+        <span>Persona: <strong>{profile?.name} ({role.toUpperCase()})</strong></span>
+        
+        <button
+          className="btn btn-sm btn-secondary"
+          onClick={() => {
+            const nextRole = role === "employee" ? "admin" : "employee";
+            setRole(nextRole);
+            setProfile({
+              name: nextRole === "admin" ? "HR Administrator" : "Udeh Kosisochukwu",
+              email: nextRole === "admin" ? "hr@company.com" : "employee@company.com",
+              role: nextRole,
+              department: nextRole === "admin" ? "People Operations" : "Software Engineering",
+            });
+            addToast("Role Switched", `Switched view to ${nextRole.toUpperCase()}`, "info");
+          }}
+        >
+          Switch View to {role === "employee" ? "HR Admin" : "Employee"}
+        </button>
+
+        <button
+          className="floating-signout-btn"
+          onClick={() => {
+            setRole(null);
+            setProfile(null);
+          }}
+        >
+          Sign Out
+        </button>
+      </div>
     </div>
   );
 }
-
-const switcherStyle = {
-  position: "fixed",
-  bottom: "16px",
-  right: "16px",
-  left: "16px",
-  maxWidth: "calc(100vw - 32px)",
-  backgroundColor: "rgba(15, 23, 42, 0.96)",
-  color: "#fff",
-  padding: "10px 16px",
-  borderRadius: "16px",
-  display: "flex",
-  flexWrap: "wrap",
-  gap: "8px 12px",
-  alignItems: "center",
-  justifyContent: "space-between",
-  zIndex: 9999,
-  boxShadow: "0 18px 40px rgba(15, 23, 42, 0.2)",
-  border: "1px solid rgba(148, 163, 184, 0.18)",
-  fontSize: "13px",
-};

@@ -1,6 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 export default function ESSDashboard({
+  profile,
+  theme,
+  onToggleTheme,
   leaveRequests,
   onSubmitLeave,
   announcements,
@@ -14,16 +17,44 @@ export default function ESSDashboard({
   onAddTicket,
 }) {
   const [activeTab, setActiveTab] = useState("dashboard");
-  const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
 
-  // Employee Information State
+  useEffect(() => {
+    let interval = null;
+    if (attendanceStatus?.isClockedIn) {
+      interval = setInterval(() => {
+        setElapsedSeconds((prev) => prev + 1);
+      }, 1000);
+    } else {
+      setElapsedSeconds(0);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [attendanceStatus?.isClockedIn]);
+
+  const formatTimer = (totalSecs) => {
+    const hrs = Math.floor(totalSecs / 3600);
+    const mins = Math.floor((totalSecs % 3600) / 60);
+    const secs = totalSecs % 60;
+    return `${hrs.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+  };
+
+  // Modals state
+  const [showLeaveModal, setShowLeaveModal] = useState(false);
+  const [showClaimModal, setShowClaimModal] = useState(false);
+  const [showTicketModal, setShowTicketModal] = useState(false);
+  const [selectedPayslip, setSelectedPayslip] = useState(null);
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+
+  // Profile data
   const [employee, setEmployee] = useState({
-    name: "Udeh Kosisochukwu Emmanuel",
+    name: profile?.name || "Udeh Kosisochukwu Emmanuel",
     id: "EMP-2026-042",
     title: "Software Developer Intern",
-    department: "Engineering",
-    email: "udeh.emmanuel@nexus.com",
+    department: profile?.department || "Software Engineering",
+    email: profile?.email || "udeh.emmanuel@nexus.com",
     phone: "+234 812 345 6789",
     joinDate: "August 1, 2026",
     manager: "Sarah Chen (Tech Lead)",
@@ -36,84 +67,7 @@ export default function ESSDashboard({
 
   const [editProfileForm, setEditProfileForm] = useState(employee);
 
-  const isClockedIn = attendanceStatus?.isClockedIn ?? false;
-  const clockInTime = attendanceStatus?.clockInTime ?? null;
-  const events = [
-    {
-      id: 1,
-      title: "Engineering E-Sports & Board Game Night",
-      date: "Aug 14, 2026",
-      time: "06:00 PM",
-      desc: "Join us for casual ranked matches (League of Legends) and Blitz Chess.",
-    },
-    {
-      id: 2,
-      title: "Monthly Office Book Club",
-      date: "Aug 21, 2026",
-      time: "05:00 PM",
-      desc: "This month's focus: Contemporary Fantasy Novellas.",
-    },
-  ];
-
-  const performanceKPIs = [
-    {
-      id: 1,
-      label: "Task Completion Rate",
-      value: "93%",
-      detail: "45 of 48 assigned tasks completed",
-    },
-    {
-      id: 2,
-      label: "Attendance Score",
-      value: "97%",
-      detail: "Strong punctuality over the last 4 weeks",
-    },
-    {
-      id: 3,
-      label: "Review Rating",
-      value: "4.5 / 5",
-      detail: "Latest quarterly internal review",
-    },
-  ];
-
-  const performanceGoals = [
-    {
-      id: 1,
-      title: "Launch support ticket automation workflow",
-      progress: 82,
-      due: "Sep 15, 2026",
-    },
-    {
-      id: 2,
-      title: "Complete Q3 customer onboarding dashboards",
-      progress: 64,
-      due: "Sep 30, 2026",
-    },
-    {
-      id: 3,
-      title: "Mentor junior engineer on deployment best practices",
-      progress: 48,
-      due: "Oct 12, 2026",
-    },
-  ];
-
-  // Benefits & HMO State
-  const hmoDetails = {
-    provider: "Axa Mansard Health",
-    plan: "Corporate Premium Tier 2",
-    enrolleeId: "AXM-2026-042",
-    primaryHospital: "Evercare Hospital, Port Harcourt",
-    status: "Active",
-    bloodGroup: "O+",
-    genotype: "AA",
-    emergencyContact: {
-      name: "Dr. Udeh",
-      relation: "Sister (Medical Doctor)",
-      phone: "+1 (555) 019-8372",
-      location: "United States",
-    },
-  };
-
+  // Forms State
   const [leaveForm, setLeaveForm] = useState({
     type: "Annual Leave",
     startDate: "",
@@ -125,1759 +79,919 @@ export default function ESSDashboard({
     category: "Internet & Data Allowance",
     amount: "",
     description: "",
+    receiptName: "",
   });
 
   const [ticketForm, setTicketForm] = useState({
     category: "IT Hardware",
+    priority: "Medium",
     subject: "",
     details: "",
   });
 
-  // Payroll State
-  const [selectedPayslip, setSelectedPayslip] = useState(null);
-
-  // Utility Functions
-  const calcDays = (start, end) => {
-    if (!start || !end) return 1;
-    const diff =
-      Math.ceil((new Date(end) - new Date(start)) / (1000 * 60 * 60 * 24)) + 1;
-    return diff > 0 ? diff : 1;
-  };
-
-  const parseDurationToMinutes = (value) => {
-    if (!value) return 0;
-    const numbers = String(value).match(/\d+/g);
-    if (!numbers || numbers.length < 2) return 0;
-    const hours = Number(numbers[0]);
-    const minutes = Number(numbers[1]);
-    return hours * 60 + minutes;
-  };
-
-  const totalWeeklyMinutes = attendanceRecords.reduce(
-    (sum, record) => sum + parseDurationToMinutes(record.total),
-    0
-  );
-
-  const totalWeeklyOvertimeMinutes = attendanceRecords.reduce(
-    (sum, record) => sum + parseDurationToMinutes(record.overtime),
-    0
-  );
-
-  const lateArrivalsCount = attendanceRecords.filter(
-    (record) => record.status === "Late"
-  ).length;
-
-  const weeklyHoursLabel = (totalWeeklyMinutes / 60).toFixed(1);
-  const weeklyOvertimeLabel = (totalWeeklyOvertimeMinutes / 60).toFixed(2);
-
   const handleProfileSave = (e) => {
     e.preventDefault();
-    const sanitizedProfile = Object.keys(editProfileForm).reduce((acc, key) => {
-      const val = editProfileForm[key];
-      acc[key] = typeof val === "string" && val.trim() === "" ? "nil" : val;
-      return acc;
-    }, {});
-    setEmployee(sanitizedProfile);
+    setEmployee(editProfileForm);
     setIsEditingProfile(false);
   };
 
   const handleLeaveSubmit = (e) => {
     e.preventDefault();
+    if (!leaveForm.startDate || !leaveForm.endDate) return;
+    const start = new Date(leaveForm.startDate);
+    const end = new Date(leaveForm.endDate);
+    const days = Math.max(1, Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1);
 
-    onSubmitLeave?.({
+    onSubmitLeave({
       type: leaveForm.type,
       dates: `${leaveForm.startDate} - ${leaveForm.endDate}`,
+      days,
       reason: leaveForm.reason,
     });
-
-    setLeaveForm({
-      type: "Annual Leave",
-      startDate: "",
-      endDate: "",
-      reason: "",
-    });
+    setLeaveForm({ type: "Annual Leave", startDate: "", endDate: "", reason: "" });
+    setShowLeaveModal(false);
   };
 
   const handleClaimSubmit = (e) => {
     e.preventDefault();
-
-    onSubmitClaim?.({
-      category: claimForm.category,
-      amount: claimForm.amount.startsWith("$")
-        ? claimForm.amount
-        : `$${claimForm.amount}`,
-      description: claimForm.description,
-    });
-
-    setClaimForm({
-      category: "Internet & Data Allowance",
-      amount: "",
-      description: "",
-    });
+    if (!claimForm.amount) return;
+    onSubmitClaim(claimForm);
+    setClaimForm({ category: "Internet & Data Allowance", amount: "", description: "", receiptName: "" });
+    setShowClaimModal(false);
   };
 
   const handleTicketSubmit = (e) => {
     e.preventDefault();
-
-    onAddTicket?.({
-      category: ticketForm.category,
-      subject: ticketForm.subject,
-      details: ticketForm.details,
-    });
-
-    setTicketForm({ category: "IT Hardware", subject: "", details: "" });
+    if (!ticketForm.subject) return;
+    onAddTicket(ticketForm);
+    setTicketForm({ category: "IT Hardware", priority: "Medium", subject: "", details: "" });
+    setShowTicketModal(false);
   };
 
-  return (
-    <div style={styles.layout} className="dashboard-layout">
-      <div className="mobile-top-bar">
-        <div>
-          <h2 style={{ fontSize: "16px", margin: 0 }}>Nexus ESS</h2>
-          <p style={{ fontSize: "12px", color: "#64748b", margin: "2px 0 0" }}>
-            Employee Portal
-          </p>
-        </div>
-        <button
-          className="mobile-nav-button"
-          onClick={() => setMobileMenuOpen((prev) => !prev)}
-        >
-          ☰ Menu
-        </button>
-      </div>
+  const navItems = [
+    { id: "dashboard", label: "Dashboard Overview" },
+    { id: "profile", label: "Personnel Profile" },
+    { id: "attendance", label: "Shift Attendance" },
+    { id: "leave", label: "Leave Manager" },
+    { id: "payroll", label: "Payroll & Payslips" },
+    { id: "claims", label: "Reimbursements" },
+    { id: "helpdesk", label: "IT & HR Helpdesk" },
+    { id: "hmo", label: "HMO & Benefits" },
+    { id: "performance", label: "Performance & OKRs" },
+  ];
 
+  return (
+    <div className="app-container">
+      {/* Mobile Drawer Overlay Backdrop */}
       <div
-        className={`mobile-backdrop ${mobileMenuOpen ? "is-open" : ""}`}
+        className={`sidebar-backdrop ${mobileMenuOpen ? "is-open" : ""}`}
         onClick={() => setMobileMenuOpen(false)}
       />
 
       {/* Sidebar Navigation */}
-      <aside
-        style={styles.sidebar}
-        className={`dashboard-sidebar ${mobileMenuOpen ? "is-open" : ""}`}
-      >
-        <div style={styles.brand}>
-          <div style={styles.brandLogo}>N</div>
-          <div>
-            <h2 style={styles.brandName}>Nexus ESS</h2>
-            <p style={styles.brandSub}>Employee Portal</p>
+      <aside className={`sidebar ${mobileMenuOpen ? "is-open" : ""}`}>
+        <div className="sidebar-header">
+          <div className="sidebar-brand-wrapper">
+            <div className="sidebar-brand-logo">N</div>
+            <div className="sidebar-brand-text">
+              <h2>Nexus ERP</h2>
+              <p>Employee Portal</p>
+            </div>
           </div>
+          <button className="sidebar-close-btn" onClick={() => setMobileMenuOpen(false)}>
+            ✕
+          </button>
         </div>
 
-        <nav style={styles.navStack}>
-          <button
-            onClick={() => {
-              setActiveTab("dashboard");
-              setMobileMenuOpen(false);
-            }}
-            style={{
-              ...styles.navLink,
-              ...(activeTab === "dashboard" ? styles.navActive : {}),
-            }}
-          >
-            🏠 Home / Dashboard
-          </button>
-          <button
-            onClick={() => {
-              setActiveTab("profile");
-              setMobileMenuOpen(false);
-            }}
-            style={{
-              ...styles.navLink,
-              ...(activeTab === "profile" ? styles.navActive : {}),
-            }}
-          >
-            👤 My Profile
-          </button>
-          <button
-            onClick={() => {
-              setActiveTab("performance");
-              setMobileMenuOpen(false);
-            }}
-            style={{
-              ...styles.navLink,
-              ...(activeTab === "performance" ? styles.navActive : {}),
-            }}
-          >
-            🎯 My Performance
-          </button>
-          <button
-            onClick={() => {
-              setActiveTab("attendance");
-              setMobileMenuOpen(false);
-            }}
-            style={{
-              ...styles.navLink,
-              ...(activeTab === "attendance" ? styles.navActive : {}),
-            }}
-          >
-            ⏱️ Time & Attendance
-          </button>
-          <button
-            onClick={() => {
-              setActiveTab("leave");
-              setMobileMenuOpen(false);
-            }}
-            style={{
-              ...styles.navLink,
-              ...(activeTab === "leave" ? styles.navActive : {}),
-            }}
-          >
-            🌴 Leave & Absence
-          </button>
-          <button
-            onClick={() => {
-              setActiveTab("benefits");
-              setMobileMenuOpen(false);
-            }}
-            style={{
-              ...styles.navLink,
-              ...(activeTab === "benefits" ? styles.navActive : {}),
-            }}
-          >
-            🏥 Health & Benefits
-          </button>
-          <button
-            onClick={() => {
-              setActiveTab("payroll");
-              setMobileMenuOpen(false);
-            }}
-            style={{
-              ...styles.navLink,
-              ...(activeTab === "payroll" ? styles.navActive : {}),
-            }}
-          >
-            💳 Payroll & Payslips
-          </button>
-          <button
-            onClick={() => {
-              setActiveTab("claims");
-              setMobileMenuOpen(false);
-            }}
-            style={{
-              ...styles.navLink,
-              ...(activeTab === "claims" ? styles.navActive : {}),
-            }}
-          >
-            🧾 Expenses
-          </button>
-          <button
-            onClick={() => {
-              setActiveTab("helpdesk");
-              setMobileMenuOpen(false);
-            }}
-            style={{
-              ...styles.navLink,
-              ...(activeTab === "helpdesk" ? styles.navActive : {}),
-            }}
-          >
-            🎧 IT Helpdesk
-          </button>
+        <nav className="sidebar-nav">
+          {navItems.map((item) => (
+            <button
+              key={item.id}
+              className={`nav-item ${activeTab === item.id ? "active" : ""}`}
+              onClick={() => {
+                setActiveTab(item.id);
+                setMobileMenuOpen(false);
+              }}
+            >
+              <span>{item.label}</span>
+            </button>
+          ))}
         </nav>
 
-        <div style={styles.sidebarFooter}>
-          <div style={styles.userBadge}>
-            <div style={styles.avatar}>
-              {employee.name !== "nil"
-                ? employee.name
-                    .split(" ")
-                    .map((n) => n[0])
-                    .join("")
-                : "N/A"}
-            </div>
-            <div>
-              <p style={{ margin: 0, fontWeight: "600", fontSize: "13px" }}>
-                {employee.name}
-              </p>
-              <p style={{ margin: 0, fontSize: "11px", color: "#94a3b8" }}>
-                {employee.id}
-              </p>
+        <div className="sidebar-footer">
+          <div className="user-profile-badge">
+            <div className="avatar-circle">UK</div>
+            <div className="user-profile-info">
+              <div className="user-profile-name">{employee.name}</div>
+              <div className="user-profile-role">{employee.title}</div>
             </div>
           </div>
         </div>
       </aside>
 
-      {/* Main Content Area */}
-      <main style={styles.mainContent} className="dashboard-main-content">
-        {/* DASHBOARD TAB */}
-        {activeTab === "dashboard" && (
-          <div>
-            <div style={styles.pageHeader}>
-              <h1 style={styles.pageTitle}>
-                Welcome back, {employee.name.split(" ")[0]} 👋
-              </h1>
-              <p style={styles.pageSub}>
-                Here is what's happening at Nexus today.
-              </p>
-            </div>
-
-            <div className="overview-grid">
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "24px",
-                }}
-              >
-                <div style={styles.card} className="mobile-accordion-card">
-                  <details className="mobile-details" open>
-                    <summary style={styles.accordionSummary}>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px" }}>
-                        <div>
-                          <h3 style={{ margin: "0 0 4px 0", fontSize: "18px" }}>
-                            Daily Attendance
-                          </h3>
-                          <p
-                            style={{
-                              margin: 0,
-                              color: "#64748b",
-                              fontSize: "14px",
-                            }}
-                          >
-                            August 5, 2026
-                          </p>
-                        </div>
-                        <button
-                          onClick={(e) => {
-                            e.preventDefault();
-                            onClockToggle();
-                          }}
-                          style={{
-                            ...styles.primaryBtn,
-                            background: isClockedIn
-                              ? "linear-gradient(135deg, #ef4444, #dc2626)"
-                              : "linear-gradient(135deg, #10b981, #059669)",
-                            fontSize: "16px",
-                            padding: "12px 24px",
-                          }}
-                        >
-                          {isClockedIn ? "🕒 Clock Out" : "🕒 Clock In"}
-                        </button>
-                      </div>
-                    </summary>
-                    <div className="mobile-accordion-content">
-                      {isClockedIn && (
-                        <p
-                          style={{
-                            margin: "16px 0 0 0",
-                            color: "#10b981",
-                            fontWeight: "600",
-                          }}
-                        >
-                          You clocked in today at {clockInTime || "08:52 AM"}
-                        </p>
-                      )}
-                    </div>
-                  </details>
-                </div>
-
-                <div style={styles.card} className="mobile-accordion-card">
-                  <details className="mobile-details">
-                    <summary style={styles.accordionSummary}>
-                      <h3 style={styles.cardTitle}>📢 Company Announcements & News</h3>
-                    </summary>
-                    <div className="mobile-accordion-content">
-                      <div
-                        style={{
-                          display: "flex",
-                          flexDirection: "column",
-                          gap: "16px",
-                        }}
-                      >
-                        {announcements.map((ann) => (
-                          <div
-                            key={ann.id}
-                            style={{
-                              padding: "16px",
-                              border: "1px solid #e2e8f0",
-                              borderRadius: "8px",
-                            }}
-                          >
-                            <div
-                              style={{
-                                display: "flex",
-                                justifyContent: "space-between",
-                                marginBottom: "8px",
-                              }}
-                            >
-                              <span style={{ fontWeight: "700", color: "#1e293b" }}>
-                                {ann.title}
-                              </span>
-                              <span style={{ fontSize: "12px", color: "#64748b" }}>
-                                {ann.date}
-                              </span>
-                            </div>
-                            <p
-                              style={{
-                                margin: 0,
-                                fontSize: "14px",
-                                color: "#475569",
-                                lineHeight: "1.5",
-                              }}
-                            >
-                              {ann.content}
-                            </p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </details>
-                </div>
-              </div>
-
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "24px",
-                }}
-              >
-                <div style={styles.card} className="mobile-accordion-card">
-                  <details className="mobile-details">
-                    <summary style={styles.accordionSummary}>
-                      <h3 style={styles.cardTitle}>📅 Upcoming Events</h3>
-                    </summary>
-                    <div className="mobile-accordion-content">
-                      <div
-                        style={{
-                          display: "flex",
-                          flexDirection: "column",
-                          gap: "16px",
-                        }}
-                      >
-                        {events.map((ev) => (
-                          <div
-                            key={ev.id}
-                            style={{
-                              borderLeft: "4px solid #4f46e5",
-                              paddingLeft: "12px",
-                            }}
-                          >
-                            <h4
-                              style={{
-                                margin: "0 0 4px 0",
-                                fontSize: "14px",
-                                color: "#1e293b",
-                              }}
-                            >
-                              {ev.title}
-                            </h4>
-                            <p
-                              style={{
-                                margin: "0 0 4px 0",
-                                fontSize: "12px",
-                                color: "#64748b",
-                                fontWeight: "600",
-                              }}
-                            >
-                              {ev.date} | {ev.time}
-                            </p>
-                            <p
-                              style={{
-                                margin: 0,
-                                fontSize: "13px",
-                                color: "#475569",
-                              }}
-                            >
-                              {ev.desc}
-                            </p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </details>
-                </div>
-
-                <div
-                  style={{
-                    ...styles.card,
-                    backgroundColor: "#f8fafc",
-                    border: "1px solid #e2e8f0",
-                    boxShadow: "none",
-                  }}
-                  className="mobile-accordion-card"
-                >
-                  <details className="mobile-details">
-                    <summary style={styles.accordionSummary}>
-                      <h3 style={styles.cardTitle}>Quick Links</h3>
-                    </summary>
-                    <div className="mobile-accordion-content">
-                      <ul
-                        style={{
-                          paddingLeft: "20px",
-                          margin: 0,
-                          color: "#4f46e5",
-                          fontSize: "14px",
-                          display: "flex",
-                          flexDirection: "column",
-                          gap: "8px",
-                        }}
-                      >
-                        <li style={{ cursor: "pointer" }}>
-                          Download Employee Handbook
-                        </li>
-                        <li style={{ cursor: "pointer" }}>View Holiday Calendar</li>
-                        <li style={{ cursor: "pointer" }}>
-                          IT Security Guidelines
-                        </li>
-                      </ul>
-                    </div>
-                  </details>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* PERFORMANCE TAB */}
-        {activeTab === "performance" && (
-          <div>
-            <div style={styles.pageHeader}>
-              <h1 style={styles.pageTitle}>My Performance</h1>
-              <p style={styles.pageSub}>
-                Review your current KPIs, goal progress, and latest review
-                highlights.
-              </p>
-            </div>
-
-            <div style={{ ...styles.statsGrid, marginBottom: "24px" }}>
-              {performanceKPIs.map((kpi) => (
-                <div key={kpi.id} style={styles.statCard}>
-                  <span style={styles.statLabel}>{kpi.label}</span>
-                  <span style={styles.statNum}>{kpi.value}</span>
-                  <p style={{ margin: "12px 0 0 0", color: "#64748b", fontSize: "13px" }}>
-                    {kpi.detail}
-                  </p>
-                </div>
-              ))}
-            </div>
-
-            <div style={styles.card}>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  marginBottom: "18px",
-                }}
-              >
-                <h3 style={styles.cardTitle}>Active Goals & Objectives</h3>
-                <span style={{ color: "#475569", fontSize: "13px" }}>
-                  Updated today
-                </span>
-              </div>
-              <div style={{ display: "grid", gap: "18px" }}>
-                {performanceGoals.map((goal) => (
-                  <div key={goal.id} style={{ display: "grid", gap: "10px" }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", gap: "16px", alignItems: "center" }}>
-                      <div>
-                        <p style={{ margin: 0, fontWeight: "700", color: "#0f172a" }}>
-                          {goal.title}
-                        </p>
-                        <p style={{ margin: "4px 0 0 0", fontSize: "12px", color: "#64748b" }}>
-                          Due {goal.due}
-                        </p>
-                      </div>
-                      <span style={{ fontWeight: "700", color: "#2563eb", fontSize: "13px" }}>
-                        {goal.progress}%
-                      </span>
-                    </div>
-                    <div style={styles.progressShell}>
-                      <div style={{ ...styles.progressFill, width: `${goal.progress}%` }} />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* TIME & ATTENDANCE TAB */}
-        {activeTab === "attendance" && (
-          <div>
-            <div style={styles.pageHeader}>
-              <h1 style={styles.pageTitle}>Time & Attendance History</h1>
-              <p style={styles.pageSub}>
-                View your daily clock-in/out records, total hours worked, and
-                overtime accumulation.
-              </p>
-            </div>
-
-            <div style={{ ...styles.statsGrid, marginBottom: "24px" }}>
-              <div style={styles.statCard}>
-                <span style={styles.statLabel}>Total Hours (This Week)</span>
-                <span style={styles.statNum}>
-                  {weeklyHoursLabel} <span style={styles.statUnit}>Hours</span>
-                </span>
-              </div>
-              <div style={styles.statCard}>
-                <span style={styles.statLabel}>Overtime (This Week)</span>
-                <span style={styles.statNum}>
-                  {weeklyOvertimeLabel} <span style={styles.statUnit}>Hours</span>
-                </span>
-              </div>
-              <div style={styles.statCard}>
-                <span style={styles.statLabel}>Late Arrivals</span>
-                <span style={styles.statNum}>
-                  {lateArrivalsCount} <span style={styles.statUnit}>Days</span>
-                </span>
-              </div>
-            </div>
-
-            <div style={styles.card}>
-              <h3 style={styles.cardTitle}>August 2026 Timesheet</h3>
-              <table style={styles.table}>
-                <thead>
-                  <tr style={styles.thRow}>
-                    <th style={styles.th}>Date</th>
-                    <th style={styles.th}>Clock In</th>
-                    <th style={styles.th}>Clock Out</th>
-                    <th style={styles.th}>Total Hours</th>
-                    <th style={styles.th}>Overtime</th>
-                    <th style={styles.th}>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {attendanceRecords.map((record, i) => (
-                    <tr key={record.id || i} style={styles.tr}>
-                      <td style={{ ...styles.td, fontWeight: "600" }}>
-                        {record.date}
-                      </td>
-                      <td style={styles.td}>{record.in}</td>
-                      <td style={styles.td}>{record.out || "—"}</td>
-                      <td style={{ ...styles.td, fontWeight: "600" }}>
-                        {record.total}
-                      </td>
-                      <td
-                        style={{
-                          ...styles.td,
-                          color:
-                            record.overtime !== "0m" ? "#4f46e5" : "#64748b",
-                        }}
-                      >
-                        {record.overtime}
-                      </td>
-                      <td style={styles.td}>
-                        <span style={getBadgeStyle(record.status)}>
-                          {record.status}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-
-        {/* HEALTH & BENEFITS TAB */}
-        {activeTab === "benefits" && (
-          <div>
-            <div style={styles.pageHeader}>
-              <h1 style={styles.pageTitle}>Health & Employee Benefits</h1>
-              <p style={styles.pageSub}>
-                Manage your HMO plan, primary care facilities, and emergency
-                contacts.
-              </p>
-            </div>
-
-            <div style={styles.gridTwo}>
-              <div style={styles.card}>
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "flex-start",
-                  }}
-                >
-                  <h3 style={styles.cardTitle}>HMO Plan Details</h3>
-                  <span style={getBadgeStyle("Approved")}>Active</span>
-                </div>
-                <div style={styles.infoGroup}>
-                  <div>
-                    <span style={styles.infoLabel}>Provider</span>
-                    <p style={styles.infoVal}>{hmoDetails.provider}</p>
-                  </div>
-                  <div>
-                    <span style={styles.infoLabel}>Plan Type</span>
-                    <p style={{ ...styles.infoVal, color: "#4f46e5" }}>
-                      {hmoDetails.plan}
-                    </p>
-                  </div>
-                  <div>
-                    <span style={styles.infoLabel}>Enrollee ID</span>
-                    <p style={styles.infoVal}>{hmoDetails.enrolleeId}</p>
-                  </div>
-                  <div>
-                    <span style={styles.infoLabel}>Primary Hospital</span>
-                    <p style={styles.infoVal}>{hmoDetails.primaryHospital}</p>
-                  </div>
-                  <div>
-                    <span style={styles.infoLabel}>Blood Group</span>
-                    <p style={styles.infoVal}>{hmoDetails.bloodGroup}</p>
-                  </div>
-                  <div>
-                    <span style={styles.infoLabel}>Genotype</span>
-                    <p style={styles.infoVal}>{hmoDetails.genotype}</p>
-                  </div>
-                </div>
-                <button
-                  style={{
-                    ...styles.secondaryBtn,
-                    width: "100%",
-                    marginTop: "20px",
-                  }}
-                >
-                  Request Hospital Change
-                </button>
-              </div>
-
-              <div style={styles.card}>
-                <h3 style={styles.cardTitle}>
-                  Emergency Contact / Next of Kin
-                </h3>
-                <div
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "16px",
-                  }}
-                >
-                  <div
-                    style={{
-                      padding: "16px",
-                      backgroundColor: "#f8fafc",
-                      borderRadius: "8px",
-                      border: "1px solid #e2e8f0",
-                    }}
-                  >
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        marginBottom: "12px",
-                      }}
-                    >
-                      <span
-                        style={{
-                          fontWeight: "700",
-                          fontSize: "16px",
-                          color: "#1e293b",
-                        }}
-                      >
-                        {hmoDetails.emergencyContact.name}
-                      </span>
-                      <span
-                        style={{
-                          fontSize: "12px",
-                          backgroundColor: "#e2e8f0",
-                          padding: "4px 8px",
-                          borderRadius: "4px",
-                          fontWeight: "600",
-                        }}
-                      >
-                        Primary
-                      </span>
-                    </div>
-                    <div
-                      style={{
-                        display: "grid",
-                        gridTemplateColumns: "1fr 1fr",
-                        gap: "12px",
-                      }}
-                    >
-                      <div>
-                        <span style={styles.infoLabel}>Relationship</span>
-                        <p style={styles.infoVal}>
-                          {hmoDetails.emergencyContact.relation}
-                        </p>
-                      </div>
-                      <div>
-                        <span style={styles.infoLabel}>Phone</span>
-                        <p style={styles.infoVal}>
-                          {hmoDetails.emergencyContact.phone}
-                        </p>
-                      </div>
-                      <div>
-                        <span style={styles.infoLabel}>Location</span>
-                        <p style={styles.infoVal}>
-                          {hmoDetails.emergencyContact.location}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                  <button style={styles.secondaryBtn}>
-                    + Add Secondary Contact
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* MY PROFILE TAB */}
-        {activeTab === "profile" && (
-          <div>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                marginBottom: "24px",
-              }}
+      {/* Main Workspace */}
+      <main className="main-wrapper">
+        {/* Top Navbar */}
+        <header className="top-navbar">
+          <div className="top-navbar-left">
+            <button
+              className="mobile-toggle-btn"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              aria-label="Toggle Navigation Menu"
             >
-              <div>
-                <h1 style={styles.pageTitle}>Employee Profile</h1>
-                <p style={styles.pageSub}>
-                  Personal credentials, employment info, and payment records.
-                </p>
-              </div>
-              {!isEditingProfile && (
-                <button
-                  onClick={() => {
-                    const preparedForm = Object.keys(employee).reduce(
-                      (acc, k) => {
-                        acc[k] = employee[k] === "nil" ? "" : employee[k];
-                        return acc;
-                      },
-                      {}
-                    );
-                    setEditProfileForm(preparedForm);
-                    setIsEditingProfile(true);
-                  }}
-                  style={styles.primaryBtn}
-                >
-                  ✏️ Edit Profile Info
-                </button>
-              )}
-            </div>
-
-            {!isEditingProfile ? (
-              <div style={styles.gridTwo}>
-                <div style={styles.card}>
-                  <h3 style={styles.cardTitle}>Personal & Job Details</h3>
-                  <div style={styles.infoGroup}>
-                    <div>
-                      <span style={styles.infoLabel}>Full Name</span>
-                      <p style={styles.infoVal}>{employee.name}</p>
-                    </div>
-                    <div>
-                      <span style={styles.infoLabel}>Job Title</span>
-                      <p style={styles.infoVal}>{employee.title}</p>
-                    </div>
-                    <div>
-                      <span style={styles.infoLabel}>Department</span>
-                      <p style={styles.infoVal}>{employee.department}</p>
-                    </div>
-                    <div>
-                      <span style={styles.infoLabel}>Work Email</span>
-                      <p style={styles.infoVal}>{employee.email}</p>
-                    </div>
-                    <div>
-                      <span style={styles.infoLabel}>Phone Number</span>
-                      <p style={styles.infoVal}>{employee.phone}</p>
-                    </div>
-                    <div>
-                      <span style={styles.infoLabel}>Reports To</span>
-                      <p style={styles.infoVal}>{employee.manager}</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div style={styles.card}>
-                  <h3 style={styles.cardTitle}>Banking & Tax Info</h3>
-                  <div style={styles.infoGroup}>
-                    <div>
-                      <span style={styles.infoLabel}>Bank Name</span>
-                      <p style={styles.infoVal}>{employee.bankName}</p>
-                    </div>
-                    <div>
-                      <span style={styles.infoLabel}>Account Number</span>
-                      <p style={styles.infoVal}>{employee.accountNumber}</p>
-                    </div>
-                    <div>
-                      <span style={styles.infoLabel}>Tax ID (TIN)</span>
-                      <p style={styles.infoVal}>{employee.taxId}</p>
-                    </div>
-                    <div>
-                      <span style={styles.infoLabel}>Pension PIN</span>
-                      <p style={styles.infoVal}>{employee.pensionPin}</p>
-                    </div>
-                    <div>
-                      <span style={styles.infoLabel}>Work Location</span>
-                      <p style={styles.infoVal}>{employee.location}</p>
-                    </div>
-                    <div>
-                      <span style={styles.infoLabel}>Start Date</span>
-                      <p style={styles.infoVal}>{employee.joinDate}</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div style={styles.card}>
-                <h3 style={styles.cardTitle}>Update Personal Information</h3>
-                <form onSubmit={handleProfileSave} style={styles.formGrid}>
-                  <div
-                    style={{
-                      display: "grid",
-                      gridTemplateColumns: "1fr 1fr",
-                      gap: "16px",
-                    }}
-                  >
-                    <div style={styles.fieldGroup}>
-                      <label style={styles.label}>Full Name</label>
-                      <input
-                        type="text"
-                        value={editProfileForm.name}
-                        onChange={(e) =>
-                          setEditProfileForm({
-                            ...editProfileForm,
-                            name: e.target.value,
-                          })
-                        }
-                        style={styles.input}
-                        placeholder="nil"
-                      />
-                    </div>
-                    <div style={styles.fieldGroup}>
-                      <label style={styles.label}>Work Email</label>
-                      <input
-                        type="email"
-                        value={editProfileForm.email}
-                        onChange={(e) =>
-                          setEditProfileForm({
-                            ...editProfileForm,
-                            email: e.target.value,
-                          })
-                        }
-                        style={styles.input}
-                        placeholder="nil"
-                      />
-                    </div>
-                  </div>
-
-                  <div
-                    style={{
-                      display: "grid",
-                      gridTemplateColumns: "1fr 1fr",
-                      gap: "16px",
-                    }}
-                  >
-                    <div style={styles.fieldGroup}>
-                      <label style={styles.label}>Phone Number</label>
-                      <input
-                        type="text"
-                        value={editProfileForm.phone}
-                        onChange={(e) =>
-                          setEditProfileForm({
-                            ...editProfileForm,
-                            phone: e.target.value,
-                          })
-                        }
-                        style={styles.input}
-                        placeholder="nil"
-                      />
-                    </div>
-                    <div style={styles.fieldGroup}>
-                      <label style={styles.label}>Work Location</label>
-                      <input
-                        type="text"
-                        value={editProfileForm.location}
-                        onChange={(e) =>
-                          setEditProfileForm({
-                            ...editProfileForm,
-                            location: e.target.value,
-                          })
-                        }
-                        style={styles.input}
-                        placeholder="nil"
-                      />
-                    </div>
-                  </div>
-
-                  <hr
-                    style={{
-                      border: "none",
-                      borderTop: "1px solid #e2e8f0",
-                      margin: "8px 0",
-                    }}
-                  />
-
-                  <div
-                    style={{
-                      display: "grid",
-                      gridTemplateColumns: "1fr 1fr",
-                      gap: "16px",
-                    }}
-                  >
-                    <div style={styles.fieldGroup}>
-                      <label style={styles.label}>Bank Name</label>
-                      <input
-                        type="text"
-                        value={editProfileForm.bankName}
-                        onChange={(e) =>
-                          setEditProfileForm({
-                            ...editProfileForm,
-                            bankName: e.target.value,
-                          })
-                        }
-                        style={styles.input}
-                        placeholder="nil"
-                      />
-                    </div>
-                    <div style={styles.fieldGroup}>
-                      <label style={styles.label}>Account Number</label>
-                      <input
-                        type="text"
-                        value={editProfileForm.accountNumber}
-                        onChange={(e) =>
-                          setEditProfileForm({
-                            ...editProfileForm,
-                            accountNumber: e.target.value,
-                          })
-                        }
-                        style={styles.input}
-                        placeholder="nil"
-                      />
-                    </div>
-                  </div>
-
-                  <div
-                    style={{
-                      display: "grid",
-                      gridTemplateColumns: "1fr 1fr",
-                      gap: "16px",
-                    }}
-                  >
-                    <div style={styles.fieldGroup}>
-                      <label style={styles.label}>Tax ID (TIN)</label>
-                      <input
-                        type="text"
-                        value={editProfileForm.taxId}
-                        onChange={(e) =>
-                          setEditProfileForm({
-                            ...editProfileForm,
-                            taxId: e.target.value,
-                          })
-                        }
-                        style={styles.input}
-                        placeholder="nil"
-                      />
-                    </div>
-                    <div style={styles.fieldGroup}>
-                      <label style={styles.label}>Pension PIN</label>
-                      <input
-                        type="text"
-                        value={editProfileForm.pensionPin}
-                        onChange={(e) =>
-                          setEditProfileForm({
-                            ...editProfileForm,
-                            pensionPin: e.target.value,
-                          })
-                        }
-                        style={styles.input}
-                        placeholder="nil"
-                      />
-                    </div>
-                  </div>
-
-                  <div
-                    style={{ display: "flex", gap: "12px", marginTop: "12px" }}
-                  >
-                    <button type="submit" style={styles.primaryBtn}>
-                      Save Changes
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setIsEditingProfile(false)}
-                      style={styles.secondaryBtn}
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </form>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* LEAVE & ABSENCE TAB */}
-        {activeTab === "leave" && (
-          <div>
-            <div style={styles.pageHeader}>
-              <h1 style={styles.pageTitle}>Leave & Absence</h1>
-              <p style={styles.pageSub}>
-                Track your entitlement balances and submit time off requests.
-              </p>
-            </div>
-
-            <div style={{ ...styles.statsGrid, marginBottom: "24px" }}>
-              <div style={styles.statCard}>
-                <span style={styles.statLabel}>Annual Leave</span>
-                <span style={styles.statNum}>
-                  10 <span style={styles.statUnit}>/ 15 Days Left</span>
-                </span>
-              </div>
-              <div style={styles.statCard}>
-                <span style={styles.statLabel}>Sick Leave</span>
-                <span style={styles.statNum}>
-                  3 <span style={styles.statUnit}>/ 5 Days Left</span>
-                </span>
-              </div>
-              <div style={styles.statCard}>
-                <span style={styles.statLabel}>Casual Leave</span>
-                <span style={styles.statNum}>
-                  3 <span style={styles.statUnit}>/ 3 Days Left</span>
-                </span>
-              </div>
-            </div>
-
-            <div style={styles.card}>
-              <h3 style={styles.cardTitle}>Submit New Leave Request</h3>
-              <form onSubmit={handleLeaveSubmit} style={styles.formGrid}>
-                <div style={styles.fieldGroup}>
-                  <label style={styles.label}>Leave Type</label>
-                  <select
-                    value={leaveForm.type}
-                    onChange={(e) =>
-                      setLeaveForm({ ...leaveForm, type: e.target.value })
-                    }
-                    style={styles.input}
-                  >
-                    <option value="Annual Leave">Annual Leave</option>
-                    <option value="Sick Leave">Sick Leave</option>
-                    <option value="Casual Leave">Casual Leave</option>
-                  </select>
-                </div>
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "1fr 1fr",
-                    gap: "16px",
-                  }}
-                >
-                  <div style={styles.fieldGroup}>
-                    <label style={styles.label}>Start Date</label>
-                    <input
-                      type="date"
-                      value={leaveForm.startDate}
-                      onChange={(e) =>
-                        setLeaveForm({
-                          ...leaveForm,
-                          startDate: e.target.value,
-                        })
-                      }
-                      required
-                      style={styles.input}
-                    />
-                  </div>
-                  <div style={styles.fieldGroup}>
-                    <label style={styles.label}>End Date</label>
-                    <input
-                      type="date"
-                      value={leaveForm.endDate}
-                      onChange={(e) =>
-                        setLeaveForm({ ...leaveForm, endDate: e.target.value })
-                      }
-                      required
-                      style={styles.input}
-                    />
-                  </div>
-                </div>
-                <div style={styles.fieldGroup}>
-                  <label style={styles.label}>Reason</label>
-                  <textarea
-                    value={leaveForm.reason}
-                    onChange={(e) =>
-                      setLeaveForm({ ...leaveForm, reason: e.target.value })
-                    }
-                    required
-                    rows={2}
-                    style={styles.input}
-                    placeholder="Briefly describe reason..."
-                  />
-                </div>
-                <button type="submit" style={styles.primaryBtn}>
-                  Submit Leave Request
-                </button>
-              </form>
-            </div>
-
-            <div style={styles.card}>
-              <h3 style={styles.cardTitle}>Leave Request History</h3>
-              <table style={styles.table}>
-                <thead>
-                  <tr style={styles.thRow}>
-                    <th style={styles.th}>Type</th>
-                    <th style={styles.th}>Dates</th>
-                    <th style={styles.th}>Duration</th>
-                    <th style={styles.th}>Reason</th>
-                    <th style={styles.th}>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {leaveRequests.map((r) => (
-                    <tr key={r.id} style={styles.tr}>
-                      <td style={{ ...styles.td, fontWeight: "600" }}>
-                        {r.type}
-                      </td>
-                      <td style={styles.td}>{r.dates || "—"}</td>
-                      <td style={styles.td}>{r.days ? `${r.days} Days` : "—"}</td>
-                      <td style={styles.td}>{r.reason || "—"}</td>
-                      <td style={styles.td}>
-                        <span style={getBadgeStyle(r.status)}>{r.status}</span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              <span className="hamburger-icon">
+                <span />
+                <span />
+                <span />
+              </span>
+              <span>Menu</span>
+            </button>
+            <div style={{ fontSize: "13px", color: "var(--text-muted)", fontWeight: 600 }}>
+              Employee Portal
             </div>
           </div>
-        )}
 
-        {/* PAYROLL & PAYSLIPS TAB */}
-        {activeTab === "payroll" && (
-          <div>
-            <div style={styles.pageHeader}>
-              <h1 style={styles.pageTitle}>Payroll & Compensation</h1>
-              <p style={styles.pageSub}>
-                View salary statements, tax deductions, and download payslips.
-              </p>
+          <div className="top-navbar-right">
+            {/* Live Clock Button in Header */}
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", padding: "5px 10px", borderRadius: "var(--radius-sm)", background: attendanceStatus?.isClockedIn ? "var(--success-light)" : "var(--bg-app)", border: "1px solid var(--border-color)", fontSize: "12px", fontWeight: 600 }}>
+              <span style={{ width: "7px", height: "7px", borderRadius: "50%", background: attendanceStatus?.isClockedIn ? "var(--success)" : "var(--text-muted)", display: "inline-block" }} />
+              <span style={{ whiteSpace: "nowrap" }}>{attendanceStatus?.isClockedIn ? `Shift (${formatTimer(elapsedSeconds)})` : "Off Shift"}</span>
+              <button
+                className={`btn btn-sm ${attendanceStatus?.isClockedIn ? "btn-danger" : "btn-primary"}`}
+                onClick={onClockToggle}
+                style={{ padding: "3px 8px", fontSize: "11px" }}
+              >
+                {attendanceStatus?.isClockedIn ? "Clock Out" : "Clock In"}
+              </button>
             </div>
 
-            <div style={styles.card}>
-              <h3 style={styles.cardTitle}>Recent Payslips</h3>
-              <table style={styles.table}>
-                <thead>
-                  <tr style={styles.thRow}>
-                    <th style={styles.th}>Pay Period</th>
-                    <th style={styles.th}>Pay Date</th>
-                    <th style={styles.th}>Gross Pay</th>
-                    <th style={styles.th}>Tax (PAYE)</th>
-                    <th style={styles.th}>Pension</th>
-                    <th style={styles.th}>Net Pay</th>
-                    <th style={styles.th}>Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {payments.map((ps) => (
-                    <tr key={ps.id} style={styles.tr}>
-                      <td style={{ ...styles.td, fontWeight: "600" }}>
-                        {ps.month || ps.period || "—"}
-                      </td>
-                      <td style={styles.td}>{ps.payDate || ps.date || "—"}</td>
-                      <td style={styles.td}>{ps.gross || ps.amount || "—"}</td>
-                      <td style={{ ...styles.td, color: "#ef4444" }}>
-                        -{ps.tax || "0.00"}
-                      </td>
-                      <td style={{ ...styles.td, color: "#ef4444" }}>
-                        -{ps.pension || "0.00"}
-                      </td>
-                      <td
-                        style={{
-                          ...styles.td,
-                          fontWeight: "700",
-                          color: "#10b981",
-                        }}
-                      >
-                        {ps.net || ps.amount || "—"}
-                      </td>
-                      <td style={styles.td}>
-                        <button
-                          onClick={() => setSelectedPayslip(ps)}
-                          style={styles.secondaryBtn}
-                        >
-                          View Breakdown
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <button className="theme-toggle-btn" onClick={onToggleTheme}>
+              {theme === "light" ? "Dark Mode" : "Light Mode"}
+            </button>
+          </div>
+        </header>
 
-            {selectedPayslip && (
-              <div style={{ ...styles.card, borderLeft: "4px solid #4f46e5" }}>
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    marginBottom: "16px",
-                  }}
-                >
-                  <h3 style={{ margin: 0, fontSize: "16px" }}>
-                    Statement Detail: {selectedPayslip.month}
-                  </h3>
-                  <button
-                    onClick={() => setSelectedPayslip(null)}
-                    style={{
-                      background: "none",
-                      border: "none",
-                      cursor: "pointer",
-                      color: "#64748b",
-                    }}
-                  >
-                    ✕ Close
+        {/* Content Area */}
+        <div className="content-area">
+          {/* TAB 1: DASHBOARD OVERVIEW */}
+          {activeTab === "dashboard" && (
+            <div>
+              <div className="page-header">
+                <div className="page-title">
+                  <h1>Welcome, {employee.name.split(" ")[0]}</h1>
+                  <p>Here is your daily operational summary and workspace shortcuts.</p>
+                </div>
+                <div>
+                  <button className="btn btn-primary" onClick={() => setShowLeaveModal(true)}>
+                    Apply for Leave
                   </button>
                 </div>
-                <div style={styles.infoGroup}>
-                  <div>
-                    <span style={styles.infoLabel}>Gross Salary</span>
-                    <p style={styles.infoVal}>{selectedPayslip.gross || selectedPayslip.amount || "—"}</p>
+              </div>
+
+              {/* Stats Grid */}
+              <div className="stats-grid">
+                <div className="stat-card">
+                  <div className="stat-card-header">
+                    <span className="stat-card-label">Shift Status</span>
                   </div>
-                  <div>
-                    <span style={styles.infoLabel}>Income Tax</span>
-                    <p style={styles.infoVal}>{selectedPayslip.tax || "0.00"}</p>
+                  <div className="stat-card-value">
+                    {attendanceStatus?.isClockedIn ? formatTimer(elapsedSeconds) : "00:00:00"}
                   </div>
-                  <div>
-                    <span style={styles.infoLabel}>Pension Contribution</span>
-                    <p style={styles.infoVal}>{selectedPayslip.pension || "0.00"}</p>
+                  <div className="stat-card-footer">
+                    <span className={`badge ${attendanceStatus?.isClockedIn ? "badge-approved" : "badge-pending"}`}>
+                      {attendanceStatus?.isClockedIn ? "Active Shift" : "Off Shift"}
+                    </span>
+                    <span>Started at {attendanceStatus?.clockInTime || "—"}</span>
                   </div>
-                  <div>
-                    <span style={styles.infoLabel}>Take Home (Net)</span>
-                    <p style={{ ...styles.infoVal, color: "#10b981" }}>
-                      {selectedPayslip.net || selectedPayslip.amount || "—"}
-                    </p>
+                </div>
+
+                <div className="stat-card">
+                  <div className="stat-card-header">
+                    <span className="stat-card-label">Annual Leave Balance</span>
+                  </div>
+                  <div className="stat-card-value">15 Days</div>
+                  <div className="stat-card-footer">
+                    <span className="trend-badge up">75% Available</span>
+                    <span>Out of 20 days entitlement</span>
+                  </div>
+                </div>
+
+                <div className="stat-card">
+                  <div className="stat-card-header">
+                    <span className="stat-card-label">Pending Reimbursements</span>
+                  </div>
+                  <div className="stat-card-value">$150.00</div>
+                  <div className="stat-card-footer">
+                    <span>1 claim under review</span>
+                  </div>
+                </div>
+
+                <div className="stat-card">
+                  <div className="stat-card-header">
+                    <span className="stat-card-label">Support Tickets</span>
+                  </div>
+                  <div className="stat-card-value">1 Open</div>
+                  <div className="stat-card-footer">
+                    <span className="badge badge-info">In Progress</span>
+                    <span>TCK-401 Battery</span>
                   </div>
                 </div>
               </div>
-            )}
-          </div>
-        )}
 
-        {/* EXPENSE CLAIMS TAB */}
-        {activeTab === "claims" && (
-          <div>
-            <div style={styles.pageHeader}>
-              <h1 style={styles.pageTitle}>Expense Claims & Reimbursements</h1>
-              <p style={styles.pageSub}>
-                Submit official work-related expenses for managerial approval.
-              </p>
+              {/* Grid 2 Column Content */}
+              <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "20px", marginBottom: "24px" }}>
+                {/* Announcements */}
+                <div className="card">
+                  <div className="card-header">
+                    <h3 className="card-title">Company Announcements</h3>
+                    <span className="badge badge-info">{announcements.length} Notices</span>
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                    {announcements.map((ann) => (
+                      <div key={ann.id} style={{ padding: "12px 14px", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-color)", backgroundColor: "var(--bg-app)" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
+                          <h4 style={{ fontSize: "13.5px", fontWeight: 700, color: "var(--text-main)" }}>{ann.title}</h4>
+                          <span className="badge badge-pending">{ann.type}</span>
+                        </div>
+                        <p style={{ fontSize: "13px", color: "var(--text-muted)", marginBottom: "6px" }}>{ann.content}</p>
+                        <div style={{ fontSize: "11px", color: "var(--text-light)" }}>Posted on {ann.date} by {ann.author || "HR Operations"}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Quick Action Shortcuts */}
+                <div className="card">
+                  <div className="card-header">
+                    <h3 className="card-title">Quick Actions</h3>
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                    <button className="btn btn-secondary" style={{ justifyContent: "flex-start" }} onClick={() => setShowLeaveModal(true)}>
+                      Apply for Time Off
+                    </button>
+                    <button className="btn btn-secondary" style={{ justifyContent: "flex-start" }} onClick={() => setShowClaimModal(true)}>
+                      Submit Reimbursement
+                    </button>
+                    <button className="btn btn-secondary" style={{ justifyContent: "flex-start" }} onClick={() => setShowTicketModal(true)}>
+                      Log Support Ticket
+                    </button>
+                    <button className="btn btn-secondary" style={{ justifyContent: "flex-start" }} onClick={() => setActiveTab("payroll")}>
+                      View Payslip Statement
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
+          )}
 
-            <div style={styles.card}>
-              <h3 style={styles.cardTitle}>File New Expense Claim</h3>
-              <form onSubmit={handleClaimSubmit} style={styles.formGrid}>
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "1fr 1fr",
-                    gap: "16px",
-                  }}
-                >
-                  <div style={styles.fieldGroup}>
-                    <label style={styles.label}>Expense Category</label>
-                    <select
-                      value={claimForm.category}
-                      onChange={(e) =>
-                        setClaimForm({ ...claimForm, category: e.target.value })
-                      }
-                      style={styles.input}
-                    >
-                      <option value="Internet & Data Allowance">
-                        Internet & Data Allowance
-                      </option>
-                      <option value="Office Supplies & Tech Accessories">
-                        Office Supplies & Tech Accessories
-                      </option>
-                      <option value="Travel & Logistics">
-                        Travel & Logistics
-                      </option>
-                    </select>
+          {/* TAB 2: PERSONNEL PROFILE */}
+          {activeTab === "profile" && (
+            <div>
+              <div className="page-header">
+                <div className="page-title">
+                  <h1>Personnel Profile</h1>
+                  <p>Manage personal credentials, banking details, and emergency contact info.</p>
+                </div>
+                <button className="btn btn-primary" onClick={() => setIsEditingProfile(true)}>
+                  Edit Profile Info
+                </button>
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: "20px" }}>
+                {/* ID Card Box */}
+                <div className="card" style={{ textAlign: "center", padding: "28px 20px" }}>
+                  <div className="avatar-circle" style={{ width: "80px", height: "80px", fontSize: "28px", margin: "0 auto 14px" }}>
+                    UK
                   </div>
-                  <div style={styles.fieldGroup}>
-                    <label style={styles.label}>Amount ($)</label>
-                    <input
-                      type="text"
-                      value={claimForm.amount}
-                      onChange={(e) =>
-                        setClaimForm({ ...claimForm, amount: e.target.value })
-                      }
-                      placeholder="e.g. 50.00"
-                      required
-                      style={styles.input}
-                    />
+                  <h2 style={{ fontSize: "17px", fontWeight: 700, color: "var(--text-main)" }}>{employee.name}</h2>
+                  <p style={{ fontSize: "13px", color: "var(--primary)", fontWeight: 600, marginTop: "2px" }}>{employee.title}</p>
+                  <p style={{ fontSize: "12px", color: "var(--text-muted)" }}>{employee.department}</p>
+                  
+                  <div style={{ marginTop: "20px", paddingTop: "16px", borderTop: "1px solid var(--border-color)", textAlign: "left", fontSize: "12.5px" }}>
+                    <div style={{ marginBottom: "8px" }}><strong>Employee ID:</strong> {employee.id}</div>
+                    <div style={{ marginBottom: "8px" }}><strong>Joined Date:</strong> {employee.joinDate}</div>
+                    <div style={{ marginBottom: "8px" }}><strong>Reporting Manager:</strong> {employee.manager}</div>
+                    <div><strong>Work Location:</strong> {employee.location}</div>
                   </div>
                 </div>
-                <div style={styles.fieldGroup}>
-                  <label style={styles.label}>Description / Purpose</label>
-                  <textarea
-                    value={claimForm.description}
-                    onChange={(e) =>
-                      setClaimForm({
-                        ...claimForm,
-                        description: e.target.value,
-                      })
-                    }
-                    required
-                    rows={2}
-                    style={styles.input}
-                    placeholder="Provide details standard for audit compliance..."
-                  />
+
+                {/* Details Tab Cards */}
+                <div className="card">
+                  <div className="card-header">
+                    <h3 className="card-title">Employment & Personal Details</h3>
+                  </div>
+                  
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+                    <div className="form-group">
+                      <span className="form-label">Email Address</span>
+                      <div style={{ fontSize: "13.5px", fontWeight: 600, color: "var(--text-main)" }}>{employee.email}</div>
+                    </div>
+                    <div className="form-group">
+                      <span className="form-label">Phone Number</span>
+                      <div style={{ fontSize: "13.5px", fontWeight: 600, color: "var(--text-main)" }}>{employee.phone}</div>
+                    </div>
+                    <div className="form-group">
+                      <span className="form-label">Bank Institution</span>
+                      <div style={{ fontSize: "13.5px", fontWeight: 600, color: "var(--text-main)" }}>{employee.bankName}</div>
+                    </div>
+                    <div className="form-group">
+                      <span className="form-label">Account Number</span>
+                      <div style={{ fontSize: "13.5px", fontWeight: 600, color: "var(--text-main)" }}>{employee.accountNumber}</div>
+                    </div>
+                    <div className="form-group">
+                      <span className="form-label">Tax Identification (TIN)</span>
+                      <div style={{ fontSize: "13.5px", fontWeight: 600, color: "var(--text-main)" }}>{employee.taxId}</div>
+                    </div>
+                    <div className="form-group">
+                      <span className="form-label">Pension PIN</span>
+                      <div style={{ fontSize: "13.5px", fontWeight: 600, color: "var(--text-main)" }}>{employee.pensionPin}</div>
+                    </div>
+                  </div>
                 </div>
-                <button type="submit" style={styles.primaryBtn}>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 3: SHIFT ATTENDANCE */}
+          {activeTab === "attendance" && (
+            <div>
+              <div className="page-header">
+                <div className="page-title">
+                  <h1>Shift Attendance & Time Tracking</h1>
+                  <p>Log daily shift check-ins, view overtime, and verify punctuality score.</p>
+                </div>
+              </div>
+
+              <div className="card" style={{ marginBottom: "20px" }}>
+                <div className="card-header">
+                  <h3 className="card-title">Live Shift Control</h3>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "16px" }}>
+                  <div>
+                    <div style={{ fontSize: "12px", color: "var(--text-muted)" }}>Current Shift Elapsed Duration</div>
+                    <div style={{ fontSize: "32px", fontWeight: 700, color: "var(--primary)", letterSpacing: "-0.8px" }}>
+                      {attendanceStatus?.isClockedIn ? formatTimer(elapsedSeconds) : "00:00:00"}
+                    </div>
+                  </div>
+                  <button
+                    className={`btn ${attendanceStatus?.isClockedIn ? "btn-danger" : "btn-primary"}`}
+                    onClick={onClockToggle}
+                    style={{ padding: "10px 20px", fontSize: "14px" }}
+                  >
+                    {attendanceStatus?.isClockedIn ? "Clock Out of Shift" : "Clock In to Shift"}
+                  </button>
+                </div>
+              </div>
+
+              {/* Attendance Log Table */}
+              <div className="card">
+                <div className="card-header">
+                  <h3 className="card-title">Attendance History Log</h3>
+                </div>
+                <div className="table-responsive">
+                  <table className="custom-table">
+                    <thead>
+                      <tr>
+                        <th>Date</th>
+                        <th>Clock In</th>
+                        <th>Clock Out</th>
+                        <th>Total Hours</th>
+                        <th>Overtime</th>
+                        <th>Punctuality Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {attendanceRecords.map((r) => (
+                        <tr key={r.id}>
+                          <td>{r.date}</td>
+                          <td>{r.in}</td>
+                          <td>{r.out}</td>
+                          <td>{r.total}</td>
+                          <td>{r.overtime}</td>
+                          <td>
+                            <span className={`badge ${r.status === "On Time" ? "badge-ontime" : "badge-late"}`}>
+                              {r.status}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 4: LEAVE MANAGER */}
+          {activeTab === "leave" && (
+            <div>
+              <div className="page-header">
+                <div className="page-title">
+                  <h1>Leave Management</h1>
+                  <p>Apply for time-off, check remaining entitlements, and track request status.</p>
+                </div>
+                <button className="btn btn-primary" onClick={() => setShowLeaveModal(true)}>
+                  Request New Leave
+                </button>
+              </div>
+
+              {/* Entitlement Cards */}
+              <div className="stats-grid">
+                <div className="stat-card">
+                  <span className="stat-card-label">Annual Leave Balance</span>
+                  <div className="stat-card-value">15 Days</div>
+                  <div className="stat-card-footer">5 used out of 20 days</div>
+                </div>
+                <div className="stat-card">
+                  <span className="stat-card-label">Sick Leave Balance</span>
+                  <div className="stat-card-value">5 Days</div>
+                  <div className="stat-card-footer">0 used out of 5 days</div>
+                </div>
+                <div className="stat-card">
+                  <span className="stat-card-label">Casual / Emergency</span>
+                  <div className="stat-card-value">3 Days</div>
+                  <div className="stat-card-footer">0 used out of 3 days</div>
+                </div>
+              </div>
+
+              {/* Leave Table */}
+              <div className="card">
+                <div className="card-header">
+                  <h3 className="card-title">Leave Request History</h3>
+                </div>
+                <div className="table-responsive">
+                  <table className="custom-table">
+                    <thead>
+                      <tr>
+                        <th>Leave Type</th>
+                        <th>Dates</th>
+                        <th>Duration</th>
+                        <th>Reason</th>
+                        <th>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {leaveRequests.map((req) => (
+                        <tr key={req.id}>
+                          <td><strong>{req.type}</strong></td>
+                          <td>{req.dates}</td>
+                          <td>{req.days} Day(s)</td>
+                          <td>{req.reason}</td>
+                          <td>
+                            <span className={`badge ${req.status === "Approved" ? "badge-approved" : req.status === "Pending" ? "badge-pending" : "badge-rejected"}`}>
+                              {req.status}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 5: PAYROLL & PAYSLIPS */}
+          {activeTab === "payroll" && (
+            <div>
+              <div className="page-header">
+                <div className="page-title">
+                  <h1>Payroll & Payslips</h1>
+                  <p>View monthly disbursement slips, tax breakdowns, and pension logs.</p>
+                </div>
+              </div>
+
+              <div className="card">
+                <div className="card-header">
+                  <h3 className="card-title">Issued Payslip Statements</h3>
+                </div>
+                <div className="table-responsive">
+                  <table className="custom-table">
+                    <thead>
+                      <tr>
+                        <th>Pay Period</th>
+                        <th>Disbursement Date</th>
+                        <th>Gross Earnings</th>
+                        <th>Tax & Deductions</th>
+                        <th>Net Payout</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {payments.map((p) => (
+                        <tr key={p.id}>
+                          <td><strong>{p.month}</strong></td>
+                          <td>{p.payDate}</td>
+                          <td>{p.gross}</td>
+                          <td>{p.tax}</td>
+                          <td style={{ color: "var(--success)", fontWeight: 700 }}>{p.net}</td>
+                          <td><span className="badge badge-paid">Paid</span></td>
+                          <td>
+                            <button className="btn btn-sm btn-secondary" onClick={() => setSelectedPayslip(p)}>
+                              View Statement
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 6: REIMBURSEMENTS */}
+          {activeTab === "claims" && (
+            <div>
+              <div className="page-header">
+                <div className="page-title">
+                  <h1>Expense Reimbursements</h1>
+                  <p>Submit work-related claims with receipt upload simulation for approval.</p>
+                </div>
+                <button className="btn btn-primary" onClick={() => setShowClaimModal(true)}>
                   Submit Expense Claim
                 </button>
-              </form>
-            </div>
+              </div>
 
-            <div style={styles.card}>
-              <h3 style={styles.cardTitle}>Claims Log</h3>
-              <table style={styles.table}>
-                <thead>
-                  <tr style={styles.thRow}>
-                    <th style={styles.th}>Claim ID</th>
-                    <th style={styles.th}>Category</th>
-                    <th style={styles.th}>Date</th>
-                    <th style={styles.th}>Amount</th>
-                    <th style={styles.th}>Description</th>
-                    <th style={styles.th}>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {claims.map((c) => (
-                    <tr key={c.id} style={styles.tr}>
-                      <td style={{ ...styles.td, fontWeight: "600" }}>
-                        #{c.id}
-                      </td>
-                      <td style={styles.td}>{c.category || c.type || "—"}</td>
-                      <td style={styles.td}>{c.date || c.payDate || "—"}</td>
-                      <td style={{ ...styles.td, fontWeight: "600" }}>
-                        {c.amount}
-                      </td>
-                      <td style={styles.td}>{c.description || c.desc || "—"}</td>
-                      <td style={styles.td}>
-                        <span style={getBadgeStyle(c.status)}>{c.status}</span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              <div className="card">
+                <div className="card-header">
+                  <h3 className="card-title">Submitted Reimbursements</h3>
+                </div>
+                <div className="table-responsive">
+                  <table className="custom-table">
+                    <thead>
+                      <tr>
+                        <th>Category</th>
+                        <th>Amount</th>
+                        <th>Date Submitted</th>
+                        <th>Description</th>
+                        <th>Attachment</th>
+                        <th>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {claims.map((c) => (
+                        <tr key={c.id}>
+                          <td><strong>{c.category}</strong></td>
+                          <td style={{ fontWeight: 700 }}>{c.amount}</td>
+                          <td>{c.date}</td>
+                          <td>{c.description}</td>
+                          <td>{c.receipt || "attachment.pdf"}</td>
+                          <td>
+                            <span className={`badge ${c.status === "Approved" ? "badge-approved" : "badge-pending"}`}>
+                              {c.status}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </div>
+          )}
+
+          {/* TAB 7: HELPDESK */}
+          {activeTab === "helpdesk" && (
+            <div>
+              <div className="page-header">
+                <div className="page-title">
+                  <h1>IT & HR Support Helpdesk</h1>
+                  <p>Log technical hardware issues, access requests, or HR operational inquiries.</p>
+                </div>
+                <button className="btn btn-primary" onClick={() => setShowTicketModal(true)}>
+                  Create New Ticket
+                </button>
+              </div>
+
+              <div className="card">
+                <div className="card-header">
+                  <h3 className="card-title">Active Support Tickets</h3>
+                </div>
+                <div className="table-responsive">
+                  <table className="custom-table">
+                    <thead>
+                      <tr>
+                        <th>Ticket ID</th>
+                        <th>Subject</th>
+                        <th>Category</th>
+                        <th>Priority</th>
+                        <th>Date Logged</th>
+                        <th>Assigned To</th>
+                        <th>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {tickets.map((t) => (
+                        <tr key={t.id}>
+                          <td><strong>{t.id}</strong></td>
+                          <td>{t.subject}</td>
+                          <td>{t.category}</td>
+                          <td><span className={`badge ${t.priority === "High" ? "badge-high" : "badge-medium"}`}>{t.priority}</span></td>
+                          <td>{t.date}</td>
+                          <td>{t.assignedTo || "Helpdesk Queue"}</td>
+                          <td><span className="badge badge-info">{t.status}</span></td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 8: HMO & BENEFITS */}
+          {activeTab === "hmo" && (
+            <div>
+              <div className="page-header">
+                <div className="page-title">
+                  <h1>HMO & Healthcare Benefits</h1>
+                  <p>Access your corporate health insurance policy, enrollee ID card, and hospital directory.</p>
+                </div>
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
+                {/* Virtual Card */}
+                <div className="card" style={{ backgroundColor: "#0f172a", color: "#fff" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+                    <div>
+                      <h3 style={{ fontSize: "16px", fontWeight: 700 }}>AXA MANSARD HEALTH</h3>
+                      <p style={{ fontSize: "11px", color: "#94a3b8" }}>Corporate Platinum Tier 2 Policy</p>
+                    </div>
+                  </div>
+
+                  <div style={{ fontSize: "18px", letterSpacing: "1.5px", fontWeight: 700, marginBottom: "20px" }}>
+                    AXM-2026-042-99
+                  </div>
+
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", color: "#94a3b8" }}>
+                    <div>
+                      <div>ENROLLEE NAME</div>
+                      <div style={{ color: "#fff", fontWeight: 600 }}>{employee.name}</div>
+                    </div>
+                    <div>
+                      <div>PRIMARY HOSPITAL</div>
+                      <div style={{ color: "#fff", fontWeight: 600 }}>Evercare Hospital, PH</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="card">
+                  <div className="card-header">
+                    <h3 className="card-title">Policy Entitlements Summary</h3>
+                  </div>
+                  <ul style={{ listStyle: "none", fontSize: "13px", display: "flex", flexDirection: "column", gap: "8px" }}>
+                    <li>• <strong>Inpatient Care:</strong> 100% Covered (Private Ward)</li>
+                    <li>• <strong>Outpatient Consultations:</strong> Unlimited Visits</li>
+                    <li>• <strong>Prescription Drugs:</strong> Covered (Generic & Branded)</li>
+                    <li>• <strong>Dental & Optical Allowance:</strong> $500 Annual Cap</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 9: PERFORMANCE */}
+          {activeTab === "performance" && (
+            <div>
+              <div className="page-header">
+                <div className="page-title">
+                  <h1>Performance & Quarterly OKRs</h1>
+                  <p>Track your quarterly key deliverables, mentor feedback, and review scores.</p>
+                </div>
+              </div>
+
+              <div className="stats-grid">
+                <div className="stat-card">
+                  <span className="stat-card-label">Task Completion Rate</span>
+                  <div className="stat-card-value">93%</div>
+                  <div className="stat-card-footer">45 of 48 sprint tasks done</div>
+                </div>
+                <div className="stat-card">
+                  <span className="stat-card-label">Punctuality Score</span>
+                  <div className="stat-card-value">97%</div>
+                  <div className="stat-card-footer">Top 5% in Engineering</div>
+                </div>
+                <div className="stat-card">
+                  <span className="stat-card-label">Q2 Manager Rating</span>
+                  <div className="stat-card-value">4.5 / 5.0</div>
+                  <div className="stat-card-footer">Exceeds Expectations</div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </main>
+
+      {/* MODALS */}
+
+      {/* Leave Application Modal */}
+      {showLeaveModal && (
+        <div className="modal-backdrop">
+          <div className="modal-card">
+            <div className="modal-header">
+              <h3 style={{ fontSize: "15px", fontWeight: 700 }}>Apply for Time Off</h3>
+              <button style={{ border: "none", background: "none", fontSize: "16px", cursor: "pointer", color: "var(--text-muted)" }} onClick={() => setShowLeaveModal(false)}>✕</button>
+            </div>
+            <form onSubmit={handleLeaveSubmit}>
+              <div className="modal-body">
+                <div className="form-group">
+                  <label className="form-label">Leave Category</label>
+                  <select className="form-select" value={leaveForm.type} onChange={(e) => setLeaveForm({ ...leaveForm, type: e.target.value })}>
+                    <option>Annual Leave</option>
+                    <option>Sick Leave</option>
+                    <option>Casual Leave</option>
+                  </select>
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+                  <div className="form-group">
+                    <label className="form-label">Start Date</label>
+                    <input type="date" className="form-input" value={leaveForm.startDate} onChange={(e) => setLeaveForm({ ...leaveForm, startDate: e.target.value })} required />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">End Date</label>
+                    <input type="date" className="form-input" value={leaveForm.endDate} onChange={(e) => setLeaveForm({ ...leaveForm, endDate: e.target.value })} required />
+                  </div>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Reason for Request</label>
+                  <textarea className="form-textarea" rows="3" placeholder="Provide context..." value={leaveForm.reason} onChange={(e) => setLeaveForm({ ...leaveForm, reason: e.target.value })} required />
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn btn-secondary" onClick={() => setShowLeaveModal(false)}>Cancel</button>
+                <button type="submit" className="btn btn-primary">Submit Leave Application</button>
+              </div>
+            </form>
           </div>
-        )}
+        </div>
+      )}
 
-        {/* IT & HR HELPDESK TAB */}
-        {activeTab === "helpdesk" && (
-          <div>
-            <div style={styles.pageHeader}>
-              <h1 style={styles.pageTitle}>IT & HR Helpdesk</h1>
-              <p style={styles.pageSub}>
-                Create and track support tickets for technical hardware,
-                software access, or HR inquiries.
-              </p>
+      {/* Submit Claim Modal */}
+      {showClaimModal && (
+        <div className="modal-backdrop">
+          <div className="modal-card">
+            <div className="modal-header">
+              <h3 style={{ fontSize: "15px", fontWeight: 700 }}>Submit Expense Reimbursement</h3>
+              <button style={{ border: "none", background: "none", fontSize: "16px", cursor: "pointer", color: "var(--text-muted)" }} onClick={() => setShowClaimModal(false)}>✕</button>
             </div>
+            <form onSubmit={handleClaimSubmit}>
+              <div className="modal-body">
+                <div className="form-group">
+                  <label className="form-label">Expense Category</label>
+                  <select className="form-select" value={claimForm.category} onChange={(e) => setClaimForm({ ...claimForm, category: e.target.value })}>
+                    <option>Internet & Data Allowance</option>
+                    <option>Client Travel / Taxi</option>
+                    <option>Office Software & Tooling</option>
+                    <option>Team Lunch & Catering</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Claim Amount ($)</label>
+                  <input type="text" className="form-input" placeholder="e.g. 150.00" value={claimForm.amount} onChange={(e) => setClaimForm({ ...claimForm, amount: e.target.value })} required />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Description & Purpose</label>
+                  <textarea className="form-textarea" rows="2" placeholder="Detail the business expense..." value={claimForm.description} onChange={(e) => setClaimForm({ ...claimForm, description: e.target.value })} required />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Receipt File Upload</label>
+                  <input type="file" className="form-input" onChange={(e) => setClaimForm({ ...claimForm, receiptName: e.target.files[0]?.name })} />
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn btn-secondary" onClick={() => setShowClaimModal(false)}>Cancel</button>
+                <button type="submit" className="btn btn-primary">Submit Claim</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
-            <div style={styles.card}>
-              <h3 style={styles.cardTitle}>Create Support Ticket</h3>
-              <form onSubmit={handleTicketSubmit} style={styles.formGrid}>
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "1fr 1fr",
-                    gap: "16px",
-                  }}
-                >
-                  <div style={styles.fieldGroup}>
-                    <label style={styles.label}>Category</label>
-                    <select
-                      value={ticketForm.category}
-                      onChange={(e) =>
-                        setTicketForm({
-                          ...ticketForm,
-                          category: e.target.value,
-                        })
-                      }
-                      style={styles.input}
-                    >
-                      <option value="IT Hardware">IT Hardware</option>
-                      <option value="Software & Access">
-                        Software & Access
-                      </option>
-                      <option value="HR & Administrative Inquiry">
-                        HR & Administrative Inquiry
-                      </option>
+      {/* Ticket Modal */}
+      {showTicketModal && (
+        <div className="modal-backdrop">
+          <div className="modal-card">
+            <div className="modal-header">
+              <h3 style={{ fontSize: "15px", fontWeight: 700 }}>Create Support Ticket</h3>
+              <button style={{ border: "none", background: "none", fontSize: "16px", cursor: "pointer", color: "var(--text-muted)" }} onClick={() => setShowTicketModal(false)}>✕</button>
+            </div>
+            <form onSubmit={handleTicketSubmit}>
+              <div className="modal-body">
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+                  <div className="form-group">
+                    <label className="form-label">Category</label>
+                    <select className="form-select" value={ticketForm.category} onChange={(e) => setTicketForm({ ...ticketForm, category: e.target.value })}>
+                      <option>IT Hardware</option>
+                      <option>Network & VPN Security</option>
+                      <option>Software & License Access</option>
+                      <option>HR & Benefits Inquiry</option>
                     </select>
                   </div>
-                  <div style={styles.fieldGroup}>
-                    <label style={styles.label}>Subject</label>
-                    <input
-                      type="text"
-                      value={ticketForm.subject}
-                      onChange={(e) =>
-                        setTicketForm({
-                          ...ticketForm,
-                          subject: e.target.value,
-                        })
-                      }
-                      placeholder="Short description of issue"
-                      required
-                      style={styles.input}
-                    />
+                  <div className="form-group">
+                    <label className="form-label">Priority Level</label>
+                    <select className="form-select" value={ticketForm.priority} onChange={(e) => setTicketForm({ ...ticketForm, priority: e.target.value })}>
+                      <option>Low</option>
+                      <option>Medium</option>
+                      <option>High</option>
+                    </select>
                   </div>
                 </div>
-                <div style={styles.fieldGroup}>
-                  <label style={styles.label}>Detailed Description</label>
-                  <textarea
-                    value={ticketForm.details}
-                    onChange={(e) =>
-                      setTicketForm({ ...ticketForm, details: e.target.value })
-                    }
-                    required
-                    rows={3}
-                    style={styles.input}
-                    placeholder="Describe problem symptoms, device models, or requests..."
-                  />
+                <div className="form-group">
+                  <label className="form-label">Subject</label>
+                  <input type="text" className="form-input" placeholder="Short description of issue..." value={ticketForm.subject} onChange={(e) => setTicketForm({ ...ticketForm, subject: e.target.value })} required />
                 </div>
-                <button type="submit" style={styles.primaryBtn}>
-                  Open Ticket
-                </button>
-              </form>
-            </div>
+                <div className="form-group">
+                  <label className="form-label">Detailed Description</label>
+                  <textarea className="form-textarea" rows="3" placeholder="Provide reproduction steps or exact device details..." value={ticketForm.details} onChange={(e) => setTicketForm({ ...ticketForm, details: e.target.value })} required />
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn btn-secondary" onClick={() => setShowTicketModal(false)}>Cancel</button>
+                <button type="submit" className="btn btn-primary">Log Ticket</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
-            <div style={styles.card}>
-              <h3 style={styles.cardTitle}>Your Active Tickets</h3>
-              <table style={styles.table}>
-                <thead>
-                  <tr style={styles.thRow}>
-                    <th style={styles.th}>Ticket ID</th>
-                    <th style={styles.th}>Category</th>
-                    <th style={styles.th}>Subject</th>
-                    <th style={styles.th}>Date Submitted</th>
-                    <th style={styles.th}>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {tickets.map((t) => (
-                    <tr key={t.id} style={styles.tr}>
-                      <td style={{ ...styles.td, fontWeight: "600" }}>
-                        {t.id}
-                      </td>
-                      <td style={styles.td}>{t.category}</td>
-                      <td style={{ ...styles.td, fontWeight: "500" }}>
-                        {t.subject}
-                      </td>
-                      <td style={styles.td}>{t.date}</td>
-                      <td style={styles.td}>
-                        <span style={getBadgeStyle(t.status)}>{t.status}</span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+      {/* Payslip Modal */}
+      {selectedPayslip && (
+        <div className="modal-backdrop">
+          <div className="modal-card">
+            <div className="modal-header">
+              <h3 style={{ fontSize: "15px", fontWeight: 700 }}>Payslip Statement - {selectedPayslip.month}</h3>
+              <button style={{ border: "none", background: "none", fontSize: "16px", cursor: "pointer", color: "var(--text-muted)" }} onClick={() => setSelectedPayslip(null)}>✕</button>
+            </div>
+            <div className="modal-body">
+              <div style={{ padding: "14px", borderRadius: "var(--radius-sm)", backgroundColor: "var(--bg-app)", marginBottom: "16px" }}>
+                <div style={{ fontSize: "11px", color: "var(--text-muted)" }}>EMPLOYEE NAME</div>
+                <div style={{ fontSize: "15px", fontWeight: 700 }}>{employee.name} ({employee.id})</div>
+              </div>
+
+              <div style={{ display: "flex", flexDirection: "column", gap: "10px", fontSize: "13px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  <span>Gross Salary:</span>
+                  <strong>{selectedPayslip.gross}</strong>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", color: "var(--danger)" }}>
+                  <span>Income Tax (PAYE):</span>
+                  <span>- {selectedPayslip.tax}</span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", color: "var(--danger)" }}>
+                  <span>Pension Contribution (8%):</span>
+                  <span>- {selectedPayslip.pension}</span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", color: "var(--danger)" }}>
+                  <span>Medical Insurance Premium:</span>
+                  <span>- {selectedPayslip.medical || "$50.00"}</span>
+                </div>
+                <div style={{ borderTop: "1px solid var(--border-color)", paddingTop: "10px", display: "flex", justifyContent: "space-between", fontSize: "15px", fontWeight: 700 }}>
+                  <span>Net Disbursed Salary:</span>
+                  <span style={{ color: "var(--success)" }}>{selectedPayslip.net}</span>
+                </div>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-secondary" onClick={() => setSelectedPayslip(null)}>Close</button>
+              <button className="btn btn-primary" onClick={() => alert("Downloading PDF Statement...")}>Download Statement</button>
             </div>
           </div>
-        )}
-      </main>
+        </div>
+      )}
+
+      {/* Edit Profile Modal */}
+      {isEditingProfile && (
+        <div className="modal-backdrop">
+          <div className="modal-card">
+            <div className="modal-header">
+              <h3 style={{ fontSize: "15px", fontWeight: 700 }}>Edit Personnel Information</h3>
+              <button style={{ border: "none", background: "none", fontSize: "16px", cursor: "pointer", color: "var(--text-muted)" }} onClick={() => setIsEditingProfile(false)}>✕</button>
+            </div>
+            <form onSubmit={handleProfileSave}>
+              <div className="modal-body">
+                <div className="form-group">
+                  <label className="form-label">Phone Number</label>
+                  <input type="text" className="form-input" value={editProfileForm.phone} onChange={(e) => setEditProfileForm({ ...editProfileForm, phone: e.target.value })} required />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Bank Name</label>
+                  <input type="text" className="form-input" value={editProfileForm.bankName} onChange={(e) => setEditProfileForm({ ...editProfileForm, bankName: e.target.value })} required />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Account Number</label>
+                  <input type="text" className="form-input" value={editProfileForm.accountNumber} onChange={(e) => setEditProfileForm({ ...editProfileForm, accountNumber: e.target.value })} required />
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn btn-secondary" onClick={() => setIsEditingProfile(false)}>Cancel</button>
+                <button type="submit" className="btn btn-primary">Save Changes</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
-
-// Utility styling helper for UI status badges
-const getBadgeStyle = (status) => {
-  const base = {
-    padding: "4px 10px",
-    borderRadius: "12px",
-    fontSize: "12px",
-    fontWeight: "600",
-    display: "inline-block",
-  };
-  if (status === "Approved" || status === "On Time" || status === "Active")
-    return { ...base, backgroundColor: "#dcfce7", color: "#166534" };
-  if (status === "Rejected" || status === "Late")
-    return { ...base, backgroundColor: "#fee2e2", color: "#991b1b" };
-  if (status === "In Progress" || status === "Open")
-    return { ...base, backgroundColor: "#e0e7ff", color: "#3730a3" };
-  return { ...base, backgroundColor: "#fef3c7", color: "#92400e" };
-};
-
-// UI Design System / CSS Styles Object
-const styles = {
-  layout: {
-    display: "flex",
-    minHeight: "100vh",
-    fontFamily: "Inter, system-ui, -apple-system, sans-serif",
-    backgroundColor: "#f8fafc",
-    color: "#0f172a",
-  },
-  sidebar: {
-    width: "260px",
-    background: "linear-gradient(180deg, #0f172a 0%, #111827 100%)",
-    color: "#fff",
-    padding: "24px 16px",
-    display: "flex",
-    flexDirection: "column",
-    gap: "28px",
-    borderRight: "1px solid rgba(148, 163, 184, 0.18)",
-  },
-  brand: { display: "flex", alignItems: "center", gap: "12px" },
-  brandLogo: {
-    width: "38px",
-    height: "38px",
-    background: "linear-gradient(135deg, #4f46e5, #2563eb)",
-    borderRadius: "10px",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontWeight: "800",
-    fontSize: "18px",
-    boxShadow: "0 8px 22px rgba(37, 99, 235, 0.28)",
-  },
-  brandName: { fontSize: "16px", fontWeight: "700", margin: 0 },
-  brandSub: { fontSize: "11px", color: "#94a3b8", margin: 0 },
-  navStack: { display: "flex", flexDirection: "column", gap: "6px" },
-  navLink: {
-    background: "transparent",
-    border: "1px solid transparent",
-    color: "#94a3b8",
-    padding: "11px 12px",
-    borderRadius: "10px",
-    textAlign: "left",
-    fontSize: "13px",
-    fontWeight: "600",
-    cursor: "pointer",
-    display: "flex",
-    alignItems: "center",
-    gap: "8px",
-    transition: "all 0.18s ease",
-  },
-  navActive: {
-    backgroundColor: "rgba(255,255,255,0.08)",
-    color: "#fff",
-    borderColor: "rgba(255,255,255,0.12)",
-  },
-  sidebarFooter: {
-    marginTop: "auto",
-    borderTop: "1px solid rgba(148, 163, 184, 0.18)",
-    paddingTop: "16px",
-  },
-  userBadge: { display: "flex", alignItems: "center", gap: "10px" },
-  avatar: {
-    width: "34px",
-    height: "34px",
-    borderRadius: "50%",
-    background: "linear-gradient(135deg, #4f46e5, #2563eb)",
-    color: "#fff",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontWeight: "700",
-    fontSize: "12px",
-  },
-  mainContent: { flex: 1, padding: "36px 40px", maxWidth: "1100px" },
-  pageHeader: { marginBottom: "24px" },
-  pageTitle: { fontSize: "26px", fontWeight: "800", margin: 0, letterSpacing: "-0.03em" },
-  pageSub: { fontSize: "13px", color: "#64748b", margin: "6px 0 0 0", lineHeight: 1.6 },
-  gridTwo: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
-    gap: "20px",
-  },
-  card: {
-    backgroundColor: "#fff",
-    padding: "24px",
-    borderRadius: "14px",
-    border: "1px solid #e2e8f0",
-    boxShadow: "0 12px 30px rgba(15, 23, 42, 0.05)",
-    marginBottom: "24px",
-  },
-  accordionSummary: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    cursor: "pointer",
-    listStyle: "none",
-  },
-  cardTitle: {
-    fontSize: "15px",
-    fontWeight: "700",
-    margin: "0 0 16px 0",
-    color: "#0f172a",
-  },
-  infoGroup: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" },
-  infoLabel: { fontSize: "12px", color: "#64748b", fontWeight: "700" },
-  infoVal: { fontSize: "14px", fontWeight: "600", margin: "2px 0 0 0" },
-  statsGrid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-    gap: "16px",
-  },
-  statCard: {
-    backgroundColor: "#fff",
-    padding: "20px",
-    borderRadius: "12px",
-    border: "1px solid #e2e8f0",
-    boxShadow: "0 8px 24px rgba(15, 23, 42, 0.05)",
-    display: "flex",
-    flexDirection: "column",
-  },
-  statLabel: { fontSize: "12px", color: "#64748b", fontWeight: "700" },
-  statNum: { fontSize: "24px", fontWeight: "700", marginTop: "6px" },
-  statUnit: { fontSize: "13px", color: "#64748b", fontWeight: "normal" },
-  progressShell: {
-    width: "100%",
-    height: "12px",
-    borderRadius: "999px",
-    background: "#e2e8f0",
-    overflow: "hidden",
-  },
-  progressFill: {
-    height: "100%",
-    borderRadius: "999px",
-    background: "linear-gradient(135deg, #4f46e5, #2563eb)",
-    boxShadow: "0 8px 20px rgba(37, 99, 235, 0.15)",
-  },
-  formGrid: { display: "flex", flexDirection: "column", gap: "16px" },
-  fieldGroup: { display: "flex", flexDirection: "column", gap: "6px" },
-  label: { fontSize: "12px", fontWeight: "700", color: "#334155" },
-  input: {
-    padding: "10px 12px",
-    border: "1px solid #cbd5e1",
-    borderRadius: "10px",
-    fontSize: "13px",
-    fontFamily: "inherit",
-    outline: "none",
-    backgroundColor: "#fff",
-  },
-  primaryBtn: {
-    background: "linear-gradient(135deg, #2563eb, #4f46e5)",
-    color: "#fff",
-    border: "none",
-    padding: "10px 16px",
-    borderRadius: "10px",
-    fontSize: "13px",
-    fontWeight: "700",
-    cursor: "pointer",
-    transition: "all 0.18s ease",
-    boxShadow: "0 10px 20px rgba(37, 99, 235, 0.18)",
-  },
-  secondaryBtn: {
-    backgroundColor: "#f8fafc",
-    color: "#334155",
-    border: "1px solid #cbd5e1",
-    padding: "8px 12px",
-    borderRadius: "10px",
-    fontSize: "13px",
-    fontWeight: "700",
-    cursor: "pointer",
-  },
-  table: {
-    width: "100%",
-    borderCollapse: "separate",
-    borderSpacing: 0,
-    textAlign: "left",
-    fontSize: "13px",
-  },
-  thRow: { borderBottom: "1px solid #e2e8f0", color: "#64748b" },
-  th: {
-    padding: "10px 12px",
-    fontSize: "11px",
-    textTransform: "uppercase",
-    letterSpacing: "0.05em",
-    fontWeight: "700",
-  },
-  tr: { borderBottom: "1px solid #e2e8f0" },
-  td: { padding: "12px", color: "#334155" },
-};
