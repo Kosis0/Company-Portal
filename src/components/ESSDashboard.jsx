@@ -178,6 +178,14 @@ export default function ESSDashboard({
           ))}
         </nav>
 
+        {/* Theme Toggle Inside Dropdown Drawer */}
+        <div className="sidebar-theme-toggle">
+          <span>Theme Mode</span>
+          <button onClick={onToggleTheme}>
+            {theme === "light" ? "Switch to Dark" : "Switch to Light"}
+          </button>
+        </div>
+
         <div className="sidebar-footer">
           <div className="user-profile-badge">
             <div className="avatar-circle">UK</div>
@@ -212,22 +220,18 @@ export default function ESSDashboard({
           </div>
 
           <div className="top-navbar-right">
-            {/* Live Clock Button in Header */}
-            <div style={{ display: "flex", alignItems: "center", gap: "8px", padding: "5px 10px", borderRadius: "var(--radius-sm)", background: attendanceStatus?.isClockedIn ? "var(--success-light)" : "var(--bg-app)", border: "1px solid var(--border-color)", fontSize: "12px", fontWeight: 600 }}>
-              <span style={{ width: "7px", height: "7px", borderRadius: "50%", background: attendanceStatus?.isClockedIn ? "var(--success)" : "var(--text-muted)", display: "inline-block" }} />
-              <span style={{ whiteSpace: "nowrap" }}>{attendanceStatus?.isClockedIn ? `Shift (${formatTimer(elapsedSeconds)})` : "Off Shift"}</span>
+            {/* Compact Live Shift Status */}
+            <div style={{ display: "flex", alignItems: "center", gap: "6px", padding: "4px 8px", borderRadius: "var(--radius-sm)", background: attendanceStatus?.isClockedIn ? "var(--success-light)" : "var(--bg-app)", border: "1px solid var(--border-color)", fontSize: "11.5px", fontWeight: 600 }}>
+              <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: attendanceStatus?.isClockedIn ? "var(--success)" : "var(--text-muted)", display: "inline-block" }} />
+              <span style={{ whiteSpace: "nowrap" }}>{attendanceStatus?.isClockedIn ? formatTimer(elapsedSeconds) : "Off Shift"}</span>
               <button
                 className={`btn btn-sm ${attendanceStatus?.isClockedIn ? "btn-danger" : "btn-primary"}`}
                 onClick={onClockToggle}
-                style={{ padding: "3px 8px", fontSize: "11px" }}
+                style={{ padding: "2px 6px", fontSize: "10.5px" }}
               >
-                {attendanceStatus?.isClockedIn ? "Clock Out" : "Clock In"}
+                {attendanceStatus?.isClockedIn ? "Out" : "In"}
               </button>
             </div>
-
-            <button className="theme-toggle-btn" onClick={onToggleTheme}>
-              {theme === "light" ? "Dark Mode" : "Light Mode"}
-            </button>
           </div>
         </header>
 
@@ -299,21 +303,21 @@ export default function ESSDashboard({
               </div>
 
               {/* Grid 2 Column Content */}
-              <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "20px", marginBottom: "24px" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "16px", marginBottom: "20px" }}>
                 {/* Announcements */}
                 <div className="card">
                   <div className="card-header">
                     <h3 className="card-title">Company Announcements</h3>
                     <span className="badge badge-info">{announcements.length} Notices</span>
                   </div>
-                  <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                     {announcements.map((ann) => (
-                      <div key={ann.id} style={{ padding: "12px 14px", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-color)", backgroundColor: "var(--bg-app)" }}>
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
-                          <h4 style={{ fontSize: "13.5px", fontWeight: 700, color: "var(--text-main)" }}>{ann.title}</h4>
+                      <div key={ann.id} style={{ padding: "10px 12px", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-color)", backgroundColor: "var(--bg-app)" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "4px" }}>
+                          <h4 style={{ fontSize: "13px", fontWeight: 700, color: "var(--text-main)" }}>{ann.title}</h4>
                           <span className="badge badge-pending">{ann.type}</span>
                         </div>
-                        <p style={{ fontSize: "13px", color: "var(--text-muted)", marginBottom: "6px" }}>{ann.content}</p>
+                        <p style={{ fontSize: "12.5px", color: "var(--text-muted)", marginBottom: "4px" }}>{ann.content}</p>
                         <div style={{ fontSize: "11px", color: "var(--text-light)" }}>Posted on {ann.date} by {ann.author || "HR Operations"}</div>
                       </div>
                     ))}
@@ -325,7 +329,7 @@ export default function ESSDashboard({
                   <div className="card-header">
                     <h3 className="card-title">Quick Actions</h3>
                   </div>
-                  <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                     <button className="btn btn-secondary" style={{ justifyContent: "flex-start" }} onClick={() => setShowLeaveModal(true)}>
                       Apply for Time Off
                     </button>
@@ -357,20 +361,20 @@ export default function ESSDashboard({
                 </button>
               </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: "20px" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: "16px" }}>
                 {/* ID Card Box */}
-                <div className="card" style={{ textAlign: "center", padding: "28px 20px" }}>
-                  <div className="avatar-circle" style={{ width: "80px", height: "80px", fontSize: "28px", margin: "0 auto 14px" }}>
+                <div className="card" style={{ textAlign: "center", padding: "20px 16px" }}>
+                  <div className="avatar-circle" style={{ width: "70px", height: "70px", fontSize: "24px", margin: "0 auto 12px" }}>
                     UK
                   </div>
-                  <h2 style={{ fontSize: "17px", fontWeight: 700, color: "var(--text-main)" }}>{employee.name}</h2>
-                  <p style={{ fontSize: "13px", color: "var(--primary)", fontWeight: 600, marginTop: "2px" }}>{employee.title}</p>
-                  <p style={{ fontSize: "12px", color: "var(--text-muted)" }}>{employee.department}</p>
+                  <h2 style={{ fontSize: "16px", fontWeight: 700, color: "var(--text-main)" }}>{employee.name}</h2>
+                  <p style={{ fontSize: "12.5px", color: "var(--primary)", fontWeight: 600, marginTop: "2px" }}>{employee.title}</p>
+                  <p style={{ fontSize: "11.5px", color: "var(--text-muted)" }}>{employee.department}</p>
                   
-                  <div style={{ marginTop: "20px", paddingTop: "16px", borderTop: "1px solid var(--border-color)", textAlign: "left", fontSize: "12.5px" }}>
-                    <div style={{ marginBottom: "8px" }}><strong>Employee ID:</strong> {employee.id}</div>
-                    <div style={{ marginBottom: "8px" }}><strong>Joined Date:</strong> {employee.joinDate}</div>
-                    <div style={{ marginBottom: "8px" }}><strong>Reporting Manager:</strong> {employee.manager}</div>
+                  <div style={{ marginTop: "16px", paddingTop: "12px", borderTop: "1px solid var(--border-color)", textAlign: "left", fontSize: "12px" }}>
+                    <div style={{ marginBottom: "6px" }}><strong>Employee ID:</strong> {employee.id}</div>
+                    <div style={{ marginBottom: "6px" }}><strong>Joined Date:</strong> {employee.joinDate}</div>
+                    <div style={{ marginBottom: "6px" }}><strong>Reporting Manager:</strong> {employee.manager}</div>
                     <div><strong>Work Location:</strong> {employee.location}</div>
                   </div>
                 </div>
@@ -381,30 +385,30 @@ export default function ESSDashboard({
                     <h3 className="card-title">Employment & Personal Details</h3>
                   </div>
                   
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px" }}>
                     <div className="form-group">
                       <span className="form-label">Email Address</span>
-                      <div style={{ fontSize: "13.5px", fontWeight: 600, color: "var(--text-main)" }}>{employee.email}</div>
+                      <div style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-main)" }}>{employee.email}</div>
                     </div>
                     <div className="form-group">
                       <span className="form-label">Phone Number</span>
-                      <div style={{ fontSize: "13.5px", fontWeight: 600, color: "var(--text-main)" }}>{employee.phone}</div>
+                      <div style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-main)" }}>{employee.phone}</div>
                     </div>
                     <div className="form-group">
                       <span className="form-label">Bank Institution</span>
-                      <div style={{ fontSize: "13.5px", fontWeight: 600, color: "var(--text-main)" }}>{employee.bankName}</div>
+                      <div style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-main)" }}>{employee.bankName}</div>
                     </div>
                     <div className="form-group">
                       <span className="form-label">Account Number</span>
-                      <div style={{ fontSize: "13.5px", fontWeight: 600, color: "var(--text-main)" }}>{employee.accountNumber}</div>
+                      <div style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-main)" }}>{employee.accountNumber}</div>
                     </div>
                     <div className="form-group">
                       <span className="form-label">Tax Identification (TIN)</span>
-                      <div style={{ fontSize: "13.5px", fontWeight: 600, color: "var(--text-main)" }}>{employee.taxId}</div>
+                      <div style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-main)" }}>{employee.taxId}</div>
                     </div>
                     <div className="form-group">
                       <span className="form-label">Pension PIN</span>
-                      <div style={{ fontSize: "13.5px", fontWeight: 600, color: "var(--text-main)" }}>{employee.pensionPin}</div>
+                      <div style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-main)" }}>{employee.pensionPin}</div>
                     </div>
                   </div>
                 </div>
@@ -422,21 +426,21 @@ export default function ESSDashboard({
                 </div>
               </div>
 
-              <div className="card" style={{ marginBottom: "20px" }}>
+              <div className="card" style={{ marginBottom: "16px" }}>
                 <div className="card-header">
                   <h3 className="card-title">Live Shift Control</h3>
                 </div>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "16px" }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "12px" }}>
                   <div>
-                    <div style={{ fontSize: "12px", color: "var(--text-muted)" }}>Current Shift Elapsed Duration</div>
-                    <div style={{ fontSize: "32px", fontWeight: 700, color: "var(--primary)", letterSpacing: "-0.8px" }}>
+                    <div style={{ fontSize: "11.5px", color: "var(--text-muted)" }}>Current Shift Elapsed Duration</div>
+                    <div style={{ fontSize: "28px", fontWeight: 700, color: "var(--primary)", letterSpacing: "-0.6px" }}>
                       {attendanceStatus?.isClockedIn ? formatTimer(elapsedSeconds) : "00:00:00"}
                     </div>
                   </div>
                   <button
                     className={`btn ${attendanceStatus?.isClockedIn ? "btn-danger" : "btn-primary"}`}
                     onClick={onClockToggle}
-                    style={{ padding: "10px 20px", fontSize: "14px" }}
+                    style={{ padding: "8px 16px", fontSize: "13px" }}
                   >
                     {attendanceStatus?.isClockedIn ? "Clock Out of Shift" : "Clock In to Shift"}
                   </button>
@@ -711,21 +715,21 @@ export default function ESSDashboard({
                 </div>
               </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
                 {/* Virtual Card */}
                 <div className="card" style={{ backgroundColor: "#0f172a", color: "#fff" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
                     <div>
-                      <h3 style={{ fontSize: "16px", fontWeight: 700 }}>AXA MANSARD HEALTH</h3>
+                      <h3 style={{ fontSize: "15px", fontWeight: 700 }}>AXA MANSARD HEALTH</h3>
                       <p style={{ fontSize: "11px", color: "#94a3b8" }}>Corporate Platinum Tier 2 Policy</p>
                     </div>
                   </div>
 
-                  <div style={{ fontSize: "18px", letterSpacing: "1.5px", fontWeight: 700, marginBottom: "20px" }}>
+                  <div style={{ fontSize: "17px", letterSpacing: "1px", fontWeight: 700, marginBottom: "16px" }}>
                     AXM-2026-042-99
                   </div>
 
-                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", color: "#94a3b8" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11.5px", color: "#94a3b8" }}>
                     <div>
                       <div>ENROLLEE NAME</div>
                       <div style={{ color: "#fff", fontWeight: 600 }}>{employee.name}</div>
@@ -741,7 +745,7 @@ export default function ESSDashboard({
                   <div className="card-header">
                     <h3 className="card-title">Policy Entitlements Summary</h3>
                   </div>
-                  <ul style={{ listStyle: "none", fontSize: "13px", display: "flex", flexDirection: "column", gap: "8px" }}>
+                  <ul style={{ listStyle: "none", fontSize: "12.5px", display: "flex", flexDirection: "column", gap: "6px" }}>
                     <li>• <strong>Inpatient Care:</strong> 100% Covered (Private Ward)</li>
                     <li>• <strong>Outpatient Consultations:</strong> Unlimited Visits</li>
                     <li>• <strong>Prescription Drugs:</strong> Covered (Generic & Branded)</li>
@@ -791,7 +795,7 @@ export default function ESSDashboard({
         <div className="modal-backdrop">
           <div className="modal-card">
             <div className="modal-header">
-              <h3 style={{ fontSize: "15px", fontWeight: 700 }}>Apply for Time Off</h3>
+              <h3 style={{ fontSize: "14.5px", fontWeight: 700 }}>Apply for Time Off</h3>
               <button style={{ border: "none", background: "none", fontSize: "16px", cursor: "pointer", color: "var(--text-muted)" }} onClick={() => setShowLeaveModal(false)}>✕</button>
             </div>
             <form onSubmit={handleLeaveSubmit}>
@@ -804,7 +808,7 @@ export default function ESSDashboard({
                     <option>Casual Leave</option>
                   </select>
                 </div>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
                   <div className="form-group">
                     <label className="form-label">Start Date</label>
                     <input type="date" className="form-input" value={leaveForm.startDate} onChange={(e) => setLeaveForm({ ...leaveForm, startDate: e.target.value })} required />
@@ -821,7 +825,7 @@ export default function ESSDashboard({
               </div>
               <div className="modal-footer">
                 <button type="button" className="btn btn-secondary" onClick={() => setShowLeaveModal(false)}>Cancel</button>
-                <button type="submit" className="btn btn-primary">Submit Leave Application</button>
+                <button type="submit" className="btn btn-primary">Submit Application</button>
               </div>
             </form>
           </div>
@@ -833,7 +837,7 @@ export default function ESSDashboard({
         <div className="modal-backdrop">
           <div className="modal-card">
             <div className="modal-header">
-              <h3 style={{ fontSize: "15px", fontWeight: 700 }}>Submit Expense Reimbursement</h3>
+              <h3 style={{ fontSize: "14.5px", fontWeight: 700 }}>Submit Expense Reimbursement</h3>
               <button style={{ border: "none", background: "none", fontSize: "16px", cursor: "pointer", color: "var(--text-muted)" }} onClick={() => setShowClaimModal(false)}>✕</button>
             </div>
             <form onSubmit={handleClaimSubmit}>
@@ -874,12 +878,12 @@ export default function ESSDashboard({
         <div className="modal-backdrop">
           <div className="modal-card">
             <div className="modal-header">
-              <h3 style={{ fontSize: "15px", fontWeight: 700 }}>Create Support Ticket</h3>
+              <h3 style={{ fontSize: "14.5px", fontWeight: 700 }}>Create Support Ticket</h3>
               <button style={{ border: "none", background: "none", fontSize: "16px", cursor: "pointer", color: "var(--text-muted)" }} onClick={() => setShowTicketModal(false)}>✕</button>
             </div>
             <form onSubmit={handleTicketSubmit}>
               <div className="modal-body">
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
                   <div className="form-group">
                     <label className="form-label">Category</label>
                     <select className="form-select" value={ticketForm.category} onChange={(e) => setTicketForm({ ...ticketForm, category: e.target.value })}>
@@ -900,11 +904,11 @@ export default function ESSDashboard({
                 </div>
                 <div className="form-group">
                   <label className="form-label">Subject</label>
-                  <input type="text" className="form-input" placeholder="Short description of issue..." value={ticketForm.subject} onChange={(e) => setTicketForm({ ...ticketForm, subject: e.target.value })} required />
+                  <input type="text" className="form-input" placeholder="Short description..." value={ticketForm.subject} onChange={(e) => setTicketForm({ ...ticketForm, subject: e.target.value })} required />
                 </div>
                 <div className="form-group">
                   <label className="form-label">Detailed Description</label>
-                  <textarea className="form-textarea" rows="3" placeholder="Provide reproduction steps or exact device details..." value={ticketForm.details} onChange={(e) => setTicketForm({ ...ticketForm, details: e.target.value })} required />
+                  <textarea className="form-textarea" rows="3" placeholder="Provide reproduction steps..." value={ticketForm.details} onChange={(e) => setTicketForm({ ...ticketForm, details: e.target.value })} required />
                 </div>
               </div>
               <div className="modal-footer">
@@ -921,16 +925,16 @@ export default function ESSDashboard({
         <div className="modal-backdrop">
           <div className="modal-card">
             <div className="modal-header">
-              <h3 style={{ fontSize: "15px", fontWeight: 700 }}>Payslip Statement - {selectedPayslip.month}</h3>
+              <h3 style={{ fontSize: "14.5px", fontWeight: 700 }}>Payslip Statement - {selectedPayslip.month}</h3>
               <button style={{ border: "none", background: "none", fontSize: "16px", cursor: "pointer", color: "var(--text-muted)" }} onClick={() => setSelectedPayslip(null)}>✕</button>
             </div>
             <div className="modal-body">
-              <div style={{ padding: "14px", borderRadius: "var(--radius-sm)", backgroundColor: "var(--bg-app)", marginBottom: "16px" }}>
+              <div style={{ padding: "12px", borderRadius: "var(--radius-sm)", backgroundColor: "var(--bg-app)", marginBottom: "14px" }}>
                 <div style={{ fontSize: "11px", color: "var(--text-muted)" }}>EMPLOYEE NAME</div>
-                <div style={{ fontSize: "15px", fontWeight: 700 }}>{employee.name} ({employee.id})</div>
+                <div style={{ fontSize: "14px", fontWeight: 700 }}>{employee.name} ({employee.id})</div>
               </div>
 
-              <div style={{ display: "flex", flexDirection: "column", gap: "10px", fontSize: "13px" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: "8px", fontSize: "12.5px" }}>
                 <div style={{ display: "flex", justifyContent: "space-between" }}>
                   <span>Gross Salary:</span>
                   <strong>{selectedPayslip.gross}</strong>
@@ -947,7 +951,7 @@ export default function ESSDashboard({
                   <span>Medical Insurance Premium:</span>
                   <span>- {selectedPayslip.medical || "$50.00"}</span>
                 </div>
-                <div style={{ borderTop: "1px solid var(--border-color)", paddingTop: "10px", display: "flex", justifyContent: "space-between", fontSize: "15px", fontWeight: 700 }}>
+                <div style={{ borderTop: "1px solid var(--border-color)", paddingTop: "8px", display: "flex", justifyContent: "space-between", fontSize: "14px", fontWeight: 700 }}>
                   <span>Net Disbursed Salary:</span>
                   <span style={{ color: "var(--success)" }}>{selectedPayslip.net}</span>
                 </div>
@@ -966,7 +970,7 @@ export default function ESSDashboard({
         <div className="modal-backdrop">
           <div className="modal-card">
             <div className="modal-header">
-              <h3 style={{ fontSize: "15px", fontWeight: 700 }}>Edit Personnel Information</h3>
+              <h3 style={{ fontSize: "14.5px", fontWeight: 700 }}>Edit Personnel Information</h3>
               <button style={{ border: "none", background: "none", fontSize: "16px", cursor: "pointer", color: "var(--text-muted)" }} onClick={() => setIsEditingProfile(false)}>✕</button>
             </div>
             <form onSubmit={handleProfileSave}>

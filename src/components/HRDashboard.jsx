@@ -165,6 +165,14 @@ export default function HRDashboard({
           ))}
         </nav>
 
+        {/* Theme Toggle Inside Dropdown Drawer */}
+        <div className="sidebar-theme-toggle">
+          <span>Theme Mode</span>
+          <button onClick={onToggleTheme}>
+            {theme === "light" ? "Switch to Dark" : "Switch to Light"}
+          </button>
+        </div>
+
         <div className="sidebar-footer">
           <div className="user-profile-badge">
             <div className="avatar-circle">HR</div>
@@ -199,13 +207,9 @@ export default function HRDashboard({
           </div>
 
           <div className="top-navbar-right">
-            <div style={{ fontSize: "12px", color: "var(--text-muted)", fontWeight: 600 }}>
-              Organization: <strong>Nexus HQ</strong>
+            <div style={{ fontSize: "11.5px", color: "var(--text-muted)", fontWeight: 600 }}>
+              Nexus HQ
             </div>
-
-            <button className="theme-toggle-btn" onClick={onToggleTheme}>
-              {theme === "light" ? "Dark Mode" : "Light Mode"}
-            </button>
           </div>
         </header>
 
@@ -277,15 +281,15 @@ export default function HRDashboard({
               </div>
 
               {/* Charts Section */}
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px", marginBottom: "24px" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "20px" }}>
                 {/* Department Distribution Chart */}
                 <div className="card">
                   <div className="card-header">
                     <h3 className="card-title">Department Distribution</h3>
                   </div>
-                  <div style={{ padding: "10px 0" }}>
-                    <div style={{ marginBottom: "16px" }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", fontSize: "13px", marginBottom: "4px" }}>
+                  <div style={{ padding: "8px 0" }}>
+                    <div style={{ marginBottom: "14px" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12.5px", marginBottom: "4px" }}>
                         <span>Software Engineering (75%)</span>
                         <strong>3 Staff</strong>
                       </div>
@@ -295,7 +299,7 @@ export default function HRDashboard({
                     </div>
 
                     <div>
-                      <div style={{ display: "flex", justifyContent: "space-between", fontSize: "13px", marginBottom: "4px" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12.5px", marginBottom: "4px" }}>
                         <span>Human Resources (25%)</span>
                         <strong>1 Staff</strong>
                       </div>
@@ -311,13 +315,13 @@ export default function HRDashboard({
                   <div className="card-header">
                     <h3 className="card-title">Weekly Punctuality Rate</h3>
                   </div>
-                  <div style={{ display: "flex", alignItems: "flex-end", gap: "16px", height: "130px", paddingTop: "20px" }}>
+                  <div style={{ display: "flex", alignItems: "flex-end", gap: "12px", height: "120px", paddingTop: "16px" }}>
                     {["Mon", "Tue", "Wed", "Thu", "Fri"].map((day, idx) => {
                       const heights = [80, 95, 100, 90, 85];
                       return (
-                        <div key={day} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: "6px" }}>
-                          <div style={{ height: `${heights[idx]}%`, width: "100%", maxWidth: "28px", background: "var(--primary)", borderRadius: "4px 4px 0 0" }} />
-                          <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>{day}</span>
+                        <div key={day} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
+                          <div style={{ height: `${heights[idx]}%`, width: "100%", maxWidth: "24px", background: "var(--primary)", borderRadius: "4px 4px 0 0" }} />
+                          <span style={{ fontSize: "10.5px", color: "var(--text-muted)" }}>{day}</span>
                         </div>
                       );
                     })}
@@ -336,7 +340,7 @@ export default function HRDashboard({
                   <p>Manage corporate workforce profiles, roles, departments, and compensation.</p>
                 </div>
                 <div style={{ display: "flex", gap: "10px" }}>
-                  <select className="form-select" value={deptFilter} onChange={(e) => setDeptFilter(e.target.value)} style={{ width: "170px" }}>
+                  <select className="form-select" value={deptFilter} onChange={(e) => setDeptFilter(e.target.value)} style={{ width: "160px" }}>
                     <option value="All">All Departments</option>
                     <option value="Engineering">Engineering</option>
                     <option value="Human Resources">Human Resources</option>
@@ -515,7 +519,7 @@ export default function HRDashboard({
                 </button>
               </div>
 
-              <div className="card" style={{ marginBottom: "20px" }}>
+              <div className="card" style={{ marginBottom: "16px" }}>
                 <div className="card-header">
                   <h3 className="card-title">Expense Reimbursement Claims Queue</h3>
                 </div>
@@ -636,14 +640,14 @@ export default function HRDashboard({
                 <div className="card-header">
                   <h3 className="card-title">Active Broadcast Notices</h3>
                 </div>
-                <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                   {announcements.map((ann) => (
-                    <div key={ann.id} style={{ padding: "14px", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-color)", backgroundColor: "var(--bg-app)" }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "6px" }}>
-                        <h3 style={{ fontSize: "14px", fontWeight: 700 }}>{ann.title}</h3>
+                    <div key={ann.id} style={{ padding: "12px", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-color)", backgroundColor: "var(--bg-app)" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "4px" }}>
+                        <h3 style={{ fontSize: "13.5px", fontWeight: 700 }}>{ann.title}</h3>
                         <span className="badge badge-pending">{ann.type}</span>
                       </div>
-                      <p style={{ fontSize: "13.5px", color: "var(--text-muted)", marginBottom: "8px" }}>{ann.content}</p>
+                      <p style={{ fontSize: "13px", color: "var(--text-muted)", marginBottom: "6px" }}>{ann.content}</p>
                       <div style={{ fontSize: "11px", color: "var(--text-light)" }}>Published on {ann.date} by HR Admin</div>
                     </div>
                   ))}
@@ -694,7 +698,7 @@ export default function HRDashboard({
         <div className="modal-backdrop">
           <div className="modal-card">
             <div className="modal-header">
-              <h3 style={{ fontSize: "15px", fontWeight: 700 }}>Onboard New Employee</h3>
+              <h3 style={{ fontSize: "14.5px", fontWeight: 700 }}>Onboard New Employee</h3>
               <button style={{ border: "none", background: "none", fontSize: "16px", cursor: "pointer", color: "var(--text-muted)" }} onClick={() => setShowAddEmpModal(false)}>✕</button>
             </div>
             <form onSubmit={handleAddEmployee}>
@@ -707,7 +711,7 @@ export default function HRDashboard({
                   <label className="form-label">Corporate Email</label>
                   <input type="email" className="form-input" placeholder="jane.doe@nexus.com" value={newEmpForm.email} onChange={(e) => setNewEmpForm({ ...newEmpForm, email: e.target.value })} required />
                 </div>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
                   <div className="form-group">
                     <label className="form-label">Job Title</label>
                     <input type="text" className="form-input" placeholder="Frontend Developer" value={newEmpForm.title} onChange={(e) => setNewEmpForm({ ...newEmpForm, title: e.target.value })} required />
@@ -737,7 +741,7 @@ export default function HRDashboard({
         <div className="modal-backdrop">
           <div className="modal-card">
             <div className="modal-header">
-              <h3 style={{ fontSize: "15px", fontWeight: 700 }}>Post Broadcast Announcement</h3>
+              <h3 style={{ fontSize: "14.5px", fontWeight: 700 }}>Post Broadcast Announcement</h3>
               <button style={{ border: "none", background: "none", fontSize: "16px", cursor: "pointer", color: "var(--text-muted)" }} onClick={() => setShowAnnounceModal(false)}>✕</button>
             </div>
             <form onSubmit={handleAddAnn}>
@@ -774,19 +778,19 @@ export default function HRDashboard({
         <div className="modal-backdrop">
           <div className="modal-card">
             <div className="modal-header">
-              <h3 style={{ fontSize: "15px", fontWeight: 700 }}>Employee Dossier - {selectedEmpDossier.name}</h3>
+              <h3 style={{ fontSize: "14.5px", fontWeight: 700 }}>Employee Dossier - {selectedEmpDossier.name}</h3>
               <button style={{ border: "none", background: "none", fontSize: "16px", cursor: "pointer", color: "var(--text-muted)" }} onClick={() => setSelectedEmpDossier(null)}>✕</button>
             </div>
             <div className="modal-body">
-              <div style={{ display: "flex", gap: "14px", alignItems: "center", marginBottom: "16px" }}>
-                <div className="avatar-circle" style={{ width: "50px", height: "50px", fontSize: "18px" }}>{selectedEmpDossier.name.substring(0, 2).toUpperCase()}</div>
+              <div style={{ display: "flex", gap: "12px", alignItems: "center", marginBottom: "14px" }}>
+                <div className="avatar-circle" style={{ width: "46px", height: "46px", fontSize: "16px" }}>{selectedEmpDossier.name.substring(0, 2).toUpperCase()}</div>
                 <div>
-                  <h3 style={{ fontSize: "16px", fontWeight: 700 }}>{selectedEmpDossier.name}</h3>
-                  <p style={{ fontSize: "12px", color: "var(--text-muted)" }}>{selectedEmpDossier.title} • {selectedEmpDossier.dept}</p>
+                  <h3 style={{ fontSize: "15px", fontWeight: 700 }}>{selectedEmpDossier.name}</h3>
+                  <p style={{ fontSize: "11.5px", color: "var(--text-muted)" }}>{selectedEmpDossier.title} • {selectedEmpDossier.dept}</p>
                 </div>
               </div>
 
-              <div style={{ fontSize: "13px", display: "flex", flexDirection: "column", gap: "8px" }}>
+              <div style={{ fontSize: "12.5px", display: "flex", flexDirection: "column", gap: "6px" }}>
                 <div><strong>Employee ID:</strong> {selectedEmpDossier.id}</div>
                 <div><strong>Email:</strong> {selectedEmpDossier.email}</div>
                 <div><strong>Location:</strong> {selectedEmpDossier.location}</div>
