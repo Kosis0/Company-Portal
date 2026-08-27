@@ -58,6 +58,15 @@ export default function App() {
     localStorage.setItem("monolith_theme", theme);
   }, [theme]);
 
+  useEffect(() => {
+    const unsubscribe = db.subscribeToChanges(() => {
+      refreshDatabase();
+    });
+    return () => {
+      if (typeof unsubscribe === "function") unsubscribe();
+    };
+  }, [refreshDatabase]);
+
   const toggleTheme = () => {
     setTheme((prev) => (prev === "light" ? "dark" : "light"));
   };

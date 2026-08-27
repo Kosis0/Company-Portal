@@ -1,7 +1,8 @@
 /**
- * Persistent Database Service for Monolith Enterprise ERP
- * Manages collections with local storage persistence and automated cloud sync capability.
+ * Persistent Hybrid Database Service (Supabase Cloud + Resilient Local Cache)
+ * Enables real-time synchronization across multiple devices (phones, tablets, laptops).
  */
+import { supabase, isSupabaseConfigured } from "./supabase";
 
 const STORAGE_KEYS = {
   USERS: "monolith_db_users",
@@ -12,13 +13,13 @@ const STORAGE_KEYS = {
   ANNOUNCEMENTS: "monolith_db_announcements",
 };
 
-// Initial Seed Data for first run
+// Initial Seed Data fallback
 const SEED_DATA = {
   users: [
     {
       id: "USR-001",
       email: "admin@company.com",
-      password: "password123", // In real server this is bcrypt hashed
+      password: "password123",
       role: "admin",
       name: "Victoria Sterling",
       title: "VP of People Operations",
@@ -79,52 +80,6 @@ const SEED_DATA = {
       casualLeaveBalance: 5,
       createdAt: "2026-03-10T10:00:00.000Z",
     },
-    {
-      id: "USR-004",
-      email: "alex.rivera@company.com",
-      password: "password123",
-      role: "employee",
-      name: "Alex Rivera",
-      title: "People & Talent Associate",
-      department: "Human Resources",
-      phone: "+234 805 777 8899",
-      location: "Lagos, Nigeria",
-      manager: "Victoria Sterling",
-      bankName: "Zenith Bank",
-      accountNumber: "2084930192",
-      taxId: "TIN-55019284",
-      pensionPin: "PEN-883719204",
-      salary: "$4,100/mo",
-      score: "4.3 / 5.0",
-      status: "Active",
-      annualLeaveBalance: 16,
-      sickLeaveBalance: 9,
-      casualLeaveBalance: 3,
-      createdAt: "2026-04-12T09:30:00.000Z",
-    },
-    {
-      id: "USR-005",
-      email: "david.o@company.com",
-      password: "password123",
-      role: "employee",
-      name: "David Okonjo",
-      title: "DevOps & Cloud Specialist",
-      department: "Engineering",
-      phone: "+234 818 222 3344",
-      location: "Remote",
-      manager: "Sarah Chen",
-      bankName: "Access Bank",
-      accountNumber: "1092837465",
-      taxId: "TIN-77291034",
-      pensionPin: "PEN-773820194",
-      salary: "$5,500/mo",
-      score: "4.4 / 5.0",
-      status: "On Leave",
-      annualLeaveBalance: 12,
-      sickLeaveBalance: 8,
-      casualLeaveBalance: 2,
-      createdAt: "2026-05-20T11:00:00.000Z",
-    },
   ],
   attendance: [
     {
@@ -137,28 +92,6 @@ const SEED_DATA = {
       hours: "8h 15m",
       location: "Port Harcourt Office",
       status: "On Time",
-    },
-    {
-      id: "ATT-102",
-      userId: "USR-003",
-      name: "Sarah Chen",
-      date: "2026-08-11",
-      in: "08:30 AM",
-      out: "05:15 PM",
-      hours: "8h 45m",
-      location: "Port Harcourt Office",
-      status: "On Time",
-    },
-    {
-      id: "ATT-103",
-      userId: "USR-004",
-      name: "Alex Rivera",
-      date: "2026-08-11",
-      in: "09:15 AM",
-      out: "05:00 PM",
-      hours: "7h 45m",
-      location: "Lagos Office",
-      status: "Present",
     },
   ],
   leaves: [
@@ -173,28 +106,6 @@ const SEED_DATA = {
       status: "Pending",
       appliedOn: "2026-08-10",
     },
-    {
-      id: "LV-202",
-      userId: "USR-003",
-      name: "Sarah Chen",
-      type: "Sick Leave",
-      dates: "2026-08-01 - 2026-08-02",
-      days: 2,
-      reason: "Flu recovery & clinical rest",
-      status: "Approved",
-      appliedOn: "2026-07-31",
-    },
-    {
-      id: "LV-203",
-      userId: "USR-004",
-      name: "Alex Rivera",
-      type: "Casual Leave",
-      dates: "2026-07-15 - 2026-07-16",
-      days: 1,
-      reason: "Personal statutory appointment",
-      status: "Approved",
-      appliedOn: "2026-07-12",
-    },
   ],
   claims: [
     {
@@ -207,17 +118,6 @@ const SEED_DATA = {
       description: "Monthly fiber internet subscription for remote developer workstation",
       status: "Pending",
       receipt: "fiber_receipt_aug.pdf",
-    },
-    {
-      id: "CLM-302",
-      userId: "USR-003",
-      name: "Sarah Chen",
-      category: "Client Transport",
-      amount: "$85.00",
-      date: "2026-08-04",
-      description: "Partner sync meeting airport commute mileage",
-      status: "Approved",
-      receipt: "taxi_voucher_aug.pdf",
     },
   ],
   tickets: [
@@ -233,18 +133,6 @@ const SEED_DATA = {
       assignedTo: "Dennis V. (IT Support)",
       details: "MacBook battery degradation causing rapid shutdown without charger plugged in.",
     },
-    {
-      id: "TCK-388",
-      userId: "USR-003",
-      name: "Sarah Chen",
-      subject: "VPN Access Grant for New Staging Server",
-      category: "Network & Security",
-      date: "2026-08-02",
-      priority: "Medium",
-      status: "Resolved",
-      assignedTo: "Infra Security Team",
-      details: "Requesting developer IP whitelist for staging environment deployment.",
-    },
   ],
   announcements: [
     {
@@ -255,18 +143,10 @@ const SEED_DATA = {
       author: "Victoria Sterling (People Ops)",
       content: "Mandatory virtual townhall to review H1 revenue milestones, Q3 goals, and benefits expansions across all locations.",
     },
-    {
-      id: "ANN-502",
-      title: "Expanded HMO Hospital Network Coverage in Port Harcourt & Lagos",
-      date: "Aug 08, 2026",
-      type: "General",
-      author: "HR Benefits Admin",
-      content: "Axa Mansard has expanded primary healthcare centers and specialist clinics across Lagos Island and Port Harcourt.",
-    },
   ],
 };
 
-function getCollection(key, defaultData) {
+function getLocal(key, defaultData) {
   try {
     const raw = localStorage.getItem(key);
     if (!raw) {
@@ -275,23 +155,40 @@ function getCollection(key, defaultData) {
     }
     return JSON.parse(raw);
   } catch (err) {
-    console.error(`Error reading ${key} from storage:`, err);
+    console.error(`Error reading ${key}:`, err);
     return defaultData;
   }
 }
 
-function saveCollection(key, data) {
+function saveLocal(key, data) {
   try {
     localStorage.setItem(key, JSON.stringify(data));
   } catch (err) {
-    console.error(`Error saving ${key} to storage:`, err);
+    console.error(`Error saving ${key}:`, err);
   }
 }
 
 export const db = {
+  // Realtime subscription hook
+  subscribeToChanges(onUpdateCallback) {
+    if (!isSupabaseConfigured || !supabase) return () => {};
+
+    const channel = supabase
+      .channel("monolith-live-sync")
+      .on("postgres_changes", { event: "*", schema: "public" }, () => {
+        // Trigger parent state reload when any change occurs in Supabase
+        if (onUpdateCallback) onUpdateCallback();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  },
+
   // USERS
   getUsers() {
-    return getCollection(STORAGE_KEYS.USERS, SEED_DATA.users);
+    return getLocal(STORAGE_KEYS.USERS, SEED_DATA.users);
   },
 
   getUserById(id) {
@@ -304,7 +201,7 @@ export const db = {
     return users.find((u) => u.email.toLowerCase() === email.toLowerCase()) || null;
   },
 
-  createUser(userData) {
+  async createUser(userData) {
     const users = this.getUsers();
     const newUser = {
       id: `USR-${Math.floor(100 + Math.random() * 900)}`,
@@ -316,17 +213,58 @@ export const db = {
       status: "Active",
       ...userData,
     };
+
     users.unshift(newUser);
-    saveCollection(STORAGE_KEYS.USERS, users);
+    saveLocal(STORAGE_KEYS.USERS, users);
+
+    // Sync to Supabase Cloud
+    if (isSupabaseConfigured && supabase) {
+      try {
+        await supabase.from("users").insert([
+          {
+            id: newUser.id,
+            email: newUser.email,
+            password: newUser.password,
+            name: newUser.name,
+            title: newUser.title,
+            department: newUser.department,
+            role: newUser.role,
+            location: newUser.location,
+            salary: newUser.salary,
+            annual_leave_balance: newUser.annualLeaveBalance,
+            sick_leave_balance: newUser.sickLeaveBalance,
+            casual_leave_balance: newUser.casualLeaveBalance,
+          },
+        ]);
+      } catch (err) {
+        console.warn("Supabase user sync error:", err);
+      }
+    }
+
     return newUser;
   },
 
-  updateUser(id, updates) {
+  async updateUser(id, updates) {
     const users = this.getUsers();
     const index = users.findIndex((u) => u.id === id);
     if (index !== -1) {
       users[index] = { ...users[index], ...updates };
-      saveCollection(STORAGE_KEYS.USERS, users);
+      saveLocal(STORAGE_KEYS.USERS, users);
+
+      if (isSupabaseConfigured && supabase) {
+        try {
+          const supabaseUpdates = {};
+          if (updates.name) supabaseUpdates.name = updates.name;
+          if (updates.phone) supabaseUpdates.phone = updates.phone;
+          if (updates.location) supabaseUpdates.location = updates.location;
+          if (updates.annualLeaveBalance !== undefined) supabaseUpdates.annual_leave_balance = updates.annualLeaveBalance;
+          if (Object.keys(supabaseUpdates).length > 0) {
+            await supabase.from("users").update(supabaseUpdates).eq("id", id);
+          }
+        } catch (err) {
+          console.warn("Supabase user update error:", err);
+        }
+      }
       return users[index];
     }
     return null;
@@ -334,45 +272,73 @@ export const db = {
 
   // ATTENDANCE
   getAttendance(userId = null) {
-    const records = getCollection(STORAGE_KEYS.ATTENDANCE, SEED_DATA.attendance);
-    if (userId) {
-      return records.filter((r) => r.userId === userId);
-    }
+    const records = getLocal(STORAGE_KEYS.ATTENDANCE, SEED_DATA.attendance);
+    if (userId) return records.filter((r) => r.userId === userId);
     return records;
   },
 
-  addAttendance(record) {
+  async addAttendance(record) {
     const records = this.getAttendance();
     const newRecord = {
       id: `ATT-${Date.now()}`,
       ...record,
     };
     records.unshift(newRecord);
-    saveCollection(STORAGE_KEYS.ATTENDANCE, records);
+    saveLocal(STORAGE_KEYS.ATTENDANCE, records);
+
+    if (isSupabaseConfigured && supabase) {
+      try {
+        await supabase.from("attendance").insert([
+          {
+            id: newRecord.id,
+            user_id: newRecord.userId,
+            name: newRecord.name,
+            date: newRecord.date,
+            in_time: newRecord.in,
+            out_time: newRecord.out,
+            hours: newRecord.hours,
+            location: newRecord.location,
+            status: newRecord.status,
+          },
+        ]);
+      } catch (err) {
+        console.warn("Supabase attendance sync error:", err);
+      }
+    }
     return newRecord;
   },
 
-  updateAttendance(id, updates) {
+  async updateAttendance(id, updates) {
     const records = this.getAttendance();
     const index = records.findIndex((r) => r.id === id);
     if (index !== -1) {
       records[index] = { ...records[index], ...updates };
-      saveCollection(STORAGE_KEYS.ATTENDANCE, records);
+      saveLocal(STORAGE_KEYS.ATTENDANCE, records);
+
+      if (isSupabaseConfigured && supabase) {
+        try {
+          await supabase.from("attendance").update({
+            out_time: updates.out,
+            hours: updates.hours,
+            status: updates.status,
+          }).eq("id", id);
+        } catch (err) {
+          console.warn("Supabase attendance update error:", err);
+        }
+      }
       return records[index];
     }
     return null;
   },
 
-  // LEAVE REQUESTS
+  // LEAVES
   getLeaves(userId = null) {
-    const leaves = getCollection(STORAGE_KEYS.LEAVES, SEED_DATA.leaves);
-    if (userId) {
-      return leaves.filter((l) => l.userId === userId);
-    }
+    const leaves = getLocal(STORAGE_KEYS.LEAVES, SEED_DATA.leaves);
+    if (userId) return leaves.filter((l) => l.userId === userId);
     return leaves;
   },
 
-  createLeave(leaveData) {
+  async createLeave(leaveData) {
     const leaves = this.getLeaves();
     const newLeave = {
       id: `LV-${Math.floor(100 + Math.random() * 900)}`,
@@ -381,40 +347,66 @@ export const db = {
       ...leaveData,
     };
     leaves.unshift(newLeave);
-    saveCollection(STORAGE_KEYS.LEAVES, leaves);
+    saveLocal(STORAGE_KEYS.LEAVES, leaves);
+
+    if (isSupabaseConfigured && supabase) {
+      try {
+        await supabase.from("leaves").insert([
+          {
+            id: newLeave.id,
+            user_id: newLeave.userId,
+            name: newLeave.name,
+            type: newLeave.type,
+            dates: newLeave.dates,
+            days: newLeave.days,
+            reason: newLeave.reason,
+            status: newLeave.status,
+            applied_on: newLeave.appliedOn,
+          },
+        ]);
+      } catch (err) {
+        console.warn("Supabase leave sync error:", err);
+      }
+    }
     return newLeave;
   },
 
-  updateLeaveStatus(id, status) {
+  async updateLeaveStatus(id, status) {
     const leaves = this.getLeaves();
     const index = leaves.findIndex((l) => l.id === id);
     if (index !== -1) {
       leaves[index].status = status;
-      saveCollection(STORAGE_KEYS.LEAVES, leaves);
+      saveLocal(STORAGE_KEYS.LEAVES, leaves);
 
-      // If approved, deduct from employee's leave balance in users collection
       if (status === "Approved" && leaves[index].userId) {
         const user = this.getUserById(leaves[index].userId);
         if (user && leaves[index].type === "Annual Leave") {
           const newBal = Math.max(0, (user.annualLeaveBalance || 20) - (leaves[index].days || 1));
-          this.updateUser(user.id, { annualLeaveBalance: newBal });
+          await this.updateUser(user.id, { annualLeaveBalance: newBal });
         }
       }
+
+      if (isSupabaseConfigured && supabase) {
+        try {
+          await supabase.from("leaves").update({ status }).eq("id", id);
+        } catch (err) {
+          console.warn("Supabase leave status update error:", err);
+        }
+      }
+
       return leaves[index];
     }
     return null;
   },
 
-  // EXPENSE CLAIMS
+  // CLAIMS
   getClaims(userId = null) {
-    const claims = getCollection(STORAGE_KEYS.CLAIMS, SEED_DATA.claims);
-    if (userId) {
-      return claims.filter((c) => c.userId === userId);
-    }
+    const claims = getLocal(STORAGE_KEYS.CLAIMS, SEED_DATA.claims);
+    if (userId) return claims.filter((c) => c.userId === userId);
     return claims;
   },
 
-  createClaim(claimData) {
+  async createClaim(claimData) {
     const claims = this.getClaims();
     const newClaim = {
       id: `CLM-${Math.floor(100 + Math.random() * 900)}`,
@@ -424,31 +416,57 @@ export const db = {
       ...claimData,
     };
     claims.unshift(newClaim);
-    saveCollection(STORAGE_KEYS.CLAIMS, claims);
+    saveLocal(STORAGE_KEYS.CLAIMS, claims);
+
+    if (isSupabaseConfigured && supabase) {
+      try {
+        await supabase.from("claims").insert([
+          {
+            id: newClaim.id,
+            user_id: newClaim.userId,
+            name: newClaim.name,
+            category: newClaim.category,
+            amount: newClaim.amount,
+            date: newClaim.date,
+            description: newClaim.description,
+            receipt: newClaim.receipt,
+            status: newClaim.status,
+          },
+        ]);
+      } catch (err) {
+        console.warn("Supabase claim sync error:", err);
+      }
+    }
     return newClaim;
   },
 
-  updateClaimStatus(id, status) {
+  async updateClaimStatus(id, status) {
     const claims = this.getClaims();
     const index = claims.findIndex((c) => c.id === id);
     if (index !== -1) {
       claims[index].status = status;
-      saveCollection(STORAGE_KEYS.CLAIMS, claims);
+      saveLocal(STORAGE_KEYS.CLAIMS, claims);
+
+      if (isSupabaseConfigured && supabase) {
+        try {
+          await supabase.from("claims").update({ status }).eq("id", id);
+        } catch (err) {
+          console.warn("Supabase claim status update error:", err);
+        }
+      }
       return claims[index];
     }
     return null;
   },
 
-  // SUPPORT TICKETS
+  // TICKETS
   getTickets(userId = null) {
-    const tickets = getCollection(STORAGE_KEYS.TICKETS, SEED_DATA.tickets);
-    if (userId) {
-      return tickets.filter((t) => t.userId === userId);
-    }
+    const tickets = getLocal(STORAGE_KEYS.TICKETS, SEED_DATA.tickets);
+    if (userId) return tickets.filter((t) => t.userId === userId);
     return tickets;
   },
 
-  createTicket(ticketData) {
+  async createTicket(ticketData) {
     const tickets = this.getTickets();
     const newTicket = {
       id: `TCK-${Math.floor(100 + Math.random() * 900)}`,
@@ -458,16 +476,45 @@ export const db = {
       ...ticketData,
     };
     tickets.unshift(newTicket);
-    saveCollection(STORAGE_KEYS.TICKETS, tickets);
+    saveLocal(STORAGE_KEYS.TICKETS, tickets);
+
+    if (isSupabaseConfigured && supabase) {
+      try {
+        await supabase.from("tickets").insert([
+          {
+            id: newTicket.id,
+            user_id: newTicket.userId,
+            name: newTicket.name,
+            subject: newTicket.subject,
+            category: newTicket.category,
+            priority: newTicket.priority,
+            details: newTicket.details,
+            assigned_to: newTicket.assignedTo,
+            status: newTicket.status,
+            date: newTicket.date,
+          },
+        ]);
+      } catch (err) {
+        console.warn("Supabase ticket sync error:", err);
+      }
+    }
     return newTicket;
   },
 
-  updateTicketStatus(id, status) {
+  async updateTicketStatus(id, status) {
     const tickets = this.getTickets();
     const index = tickets.findIndex((t) => t.id === id);
     if (index !== -1) {
       tickets[index].status = status;
-      saveCollection(STORAGE_KEYS.TICKETS, tickets);
+      saveLocal(STORAGE_KEYS.TICKETS, tickets);
+
+      if (isSupabaseConfigured && supabase) {
+        try {
+          await supabase.from("tickets").update({ status }).eq("id", id);
+        } catch (err) {
+          console.warn("Supabase ticket status update error:", err);
+        }
+      }
       return tickets[index];
     }
     return null;
@@ -475,10 +522,10 @@ export const db = {
 
   // ANNOUNCEMENTS
   getAnnouncements() {
-    return getCollection(STORAGE_KEYS.ANNOUNCEMENTS, SEED_DATA.announcements);
+    return getLocal(STORAGE_KEYS.ANNOUNCEMENTS, SEED_DATA.announcements);
   },
 
-  createAnnouncement(annData) {
+  async createAnnouncement(annData) {
     const announcements = this.getAnnouncements();
     const newAnn = {
       id: `ANN-${Math.floor(100 + Math.random() * 900)}`,
@@ -486,7 +533,24 @@ export const db = {
       ...annData,
     };
     announcements.unshift(newAnn);
-    saveCollection(STORAGE_KEYS.ANNOUNCEMENTS, announcements);
+    saveLocal(STORAGE_KEYS.ANNOUNCEMENTS, announcements);
+
+    if (isSupabaseConfigured && supabase) {
+      try {
+        await supabase.from("announcements").insert([
+          {
+            id: newAnn.id,
+            title: newAnn.title,
+            content: newAnn.content,
+            type: newAnn.type,
+            author: newAnn.author,
+            date: newAnn.date,
+          },
+        ]);
+      } catch (err) {
+        console.warn("Supabase announcement sync error:", err);
+      }
+    }
     return newAnn;
   },
 };

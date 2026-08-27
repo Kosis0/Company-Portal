@@ -57,7 +57,7 @@ export const auth = {
       throw new Error("An employee account already exists with this corporate email.");
     }
 
-    const newUser = db.createUser({
+    const newUser = await db.createUser({
       email: trimmedEmail,
       password: registrationData.password.trim(),
       name: registrationData.name.trim(),
