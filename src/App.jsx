@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import ESSDashboard from "./components/ESSDashboard";
-import HRDashboard from "./components/HRDashboard";
+import EnterpriseShell from "./components/EnterpriseShell";
 import Login from "./components/Login";
 import { auth } from "./services/auth";
 import { db } from "./services/db";
@@ -23,6 +22,10 @@ export default function App() {
   const [tickets, setTickets] = useState(() => db.getTickets());
   const [attendanceRecords, setAttendanceRecords] = useState(() => db.getAttendance());
   const [allEmployees, setAllEmployees] = useState(() => db.getUsers());
+  const [departments, setDepartments] = useState(() => db.getDepartments());
+  const [assets, setAssets] = useState(() => db.getAssets());
+  const [sprints, setSprints] = useState(() => db.getSprints());
+  const [orgTree, setOrgTree] = useState(() => db.getOrgTree());
 
   // Attendance live clock state
   const [attendanceStatus, setAttendanceStatus] = useState({
@@ -46,6 +49,10 @@ export default function App() {
     setTickets(db.getTickets());
     setAttendanceRecords(db.getAttendance());
     setAllEmployees(db.getUsers());
+    setDepartments(db.getDepartments());
+    setAssets(db.getAssets());
+    setSprints(db.getSprints());
+    setOrgTree(db.getOrgTree());
 
     if (currentUser?.id) {
       const updated = db.getUserById(currentUser.id);
@@ -93,13 +100,13 @@ export default function App() {
   };
 
   // Clock in / out operations
-  const handleClockToggle = () => {
+  const handleClockToggle = async () => {
     if (!currentUser) return;
     const today = new Date().toISOString().split("T")[0];
     const now = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
     if (!attendanceStatus.isClockedIn) {
-      const newRec = db.addAttendance({
+      const newRec = await db.addAttendance({
         userId: currentUser.id,
         name: currentUser.name,
         date: today,
@@ -120,7 +127,7 @@ export default function App() {
       addToast("Shift Started", `Clocked IN at ${now}`, "success");
     } else {
       if (attendanceStatus.currentRecordId) {
-        db.updateAttendance(attendanceStatus.currentRecordId, {
+        await db.updateAttendance(attendanceStatus.currentRecordId, {
           out: now,
           hours: "8h 15m",
           status: "Present",
@@ -139,45 +146,45 @@ export default function App() {
   };
 
   // Leave operations
-  const handleAddLeave = (req) => {
+  const handleAddLeave = async (req) => {
     if (!currentUser) return;
-    db.createLeave({
+    await db.createLeave({
       userId: currentUser.id,
       name: currentUser.name,
       ...req,
     });
     refreshDatabase();
-    addToast("Leave Applied", "Leave request submitted for administrative review.", "success");
+    addToast("Leave Applied", "Leave request submitted to direct manager for review.", "success");
   };
 
-  const handleUpdateLeaveStatus = (id, status) => {
-    db.updateLeaveStatus(id, status);
+  const handleUpdateLeaveStatus = async (id, status, approverName = null) => {
+    await db.updateLeaveStatus(id, status, approverName || currentUser?.name);
     refreshDatabase();
-    addToast("Leave Request Updated", `Request marked as ${status}.`, "info");
+    addToast("Leave Status Updated", `Request marked as ${status}.`, "info");
   };
 
   // Claims operations
-  const handleAddClaim = (claim) => {
+  const handleAddClaim = async (claim) => {
     if (!currentUser) return;
-    db.createClaim({
+    await db.createClaim({
       userId: currentUser.id,
       name: currentUser.name,
       ...claim,
     });
     refreshDatabase();
-    addToast("Claim Submitted", "Expense claim sent to HR Finance for verification.", "success");
+    addToast("Claim Submitted", "Expense claim routed to manager & finance queue.", "success");
   };
 
-  const handleUpdateClaimStatus = (id, status) => {
-    db.updateClaimStatus(id, status);
+  const handleUpdateClaimStatus = async (id, status) => {
+    await db.updateClaimStatus(id, status);
     refreshDatabase();
     addToast("Claim Updated", `Claim marked as ${status}.`, "info");
   };
 
   // Tickets operations
-  const handleAddTicket = (ticket) => {
+  const handleAddTicket = async (ticket) => {
     if (!currentUser) return;
-    db.createTicket({
+    await db.createTicket({
       userId: currentUser.id,
       name: currentUser.name,
       ...ticket,
@@ -186,27 +193,27 @@ export default function App() {
     addToast("Support Ticket Created", "Logged into the IT/HR support queue.", "success");
   };
 
-  const handleUpdateTicketStatus = (id, status) => {
-    db.updateTicketStatus(id, status);
+  const handleUpdateTicketStatus = async (id, status) => {
+    await db.updateTicketStatus(id, status);
     refreshDatabase();
     addToast("Ticket Updated", `Ticket status changed to ${status}.`, "info");
   };
 
   // Announcements
-  const handleAddAnnouncement = (ann) => {
+  const handleAddAnnouncement = async (ann) => {
     if (!currentUser) return;
-    db.createAnnouncement({
-      author: currentUser.name,
+    await db.createAnnouncement({
+      author: `${currentUser.name} (${currentUser.title})`,
       ...ann,
     });
     refreshDatabase();
-    addToast("Announcement Published", "New notice broadcasted to workspace.", "success");
+    addToast("Announcement Published", "New strategic notice broadcasted.", "success");
   };
 
   // Profile update
-  const handleUpdateProfile = (updates) => {
+  const handleUpdateProfile = async (updates) => {
     if (!currentUser) return;
-    const updated = db.updateUser(currentUser.id, updates);
+    const updated = await db.updateUser(currentUser.id, updates);
     if (updated) {
       setCurrentUser(updated);
       refreshDatabase();
@@ -214,42 +221,16 @@ export default function App() {
     }
   };
 
-  // Add Employee (Admin only)
-  const handleAddEmployee = (empData) => {
-    db.createUser(empData);
+  // Add Asset
+  const handleAddAsset = async (assetData) => {
+    await db.addAsset(assetData);
     refreshDatabase();
-    addToast("Employee Onboarded", "New staff account created in company directory.", "success");
+    addToast("Asset Deployed", "Hardware device registered in company inventory.", "success");
   };
 
   if (!currentUser) {
     return <Login onLogin={handleLogin} onRegister={handleRegister} />;
   }
-
-  // Payments / Payslips data
-  const defaultPayments = [
-    {
-      id: 1,
-      month: "July 2026",
-      payDate: "2026-07-28",
-      gross: currentUser.salary || "$3,500.00",
-      tax: "$400.00",
-      pension: "$150.00",
-      medical: "$50.00",
-      net: "$2,900.00",
-      status: "Paid",
-    },
-    {
-      id: 2,
-      month: "June 2026",
-      payDate: "2026-06-27",
-      gross: currentUser.salary || "$3,500.00",
-      tax: "$400.00",
-      pension: "$150.00",
-      medical: "$50.00",
-      net: "$2,900.00",
-      status: "Paid",
-    },
-  ];
 
   return (
     <div>
@@ -268,45 +249,34 @@ export default function App() {
         ))}
       </div>
 
-      {/* Role Routed Active Workspace */}
-      {currentUser.role === "admin" ? (
-        <HRDashboard
-          profile={currentUser}
-          employees={allEmployees}
-          onAddEmployee={handleAddEmployee}
-          theme={theme}
-          onToggleTheme={toggleTheme}
-          onLogout={handleLogout}
-          leaveRequests={leaveRequests}
-          onUpdateStatus={handleUpdateLeaveStatus}
-          announcements={announcements}
-          onAddAnnouncement={handleAddAnnouncement}
-          claims={claims}
-          onUpdateClaimStatus={handleUpdateClaimStatus}
-          attendanceRecords={attendanceRecords}
-          tickets={tickets}
-          onUpdateTicketStatus={handleUpdateTicketStatus}
-        />
-      ) : (
-        <ESSDashboard
-          profile={currentUser}
-          theme={theme}
-          onToggleTheme={toggleTheme}
-          onLogout={handleLogout}
-          onUpdateProfile={handleUpdateProfile}
-          leaveRequests={leaveRequests.filter((l) => l.userId === currentUser.id || !l.userId)}
-          onSubmitLeave={handleAddLeave}
-          announcements={announcements}
-          payments={defaultPayments}
-          claims={claims.filter((c) => c.userId === currentUser.id || !c.userId)}
-          onSubmitClaim={handleAddClaim}
-          attendanceRecords={attendanceRecords.filter((a) => a.userId === currentUser.id || !a.userId)}
-          attendanceStatus={attendanceStatus}
-          onClockToggle={handleClockToggle}
-          tickets={tickets.filter((t) => t.userId === currentUser.id || !t.userId)}
-          onAddTicket={handleAddTicket}
-        />
-      )}
+      {/* Unified Adaptive Enterprise Shell */}
+      <EnterpriseShell
+        currentUser={currentUser}
+        theme={theme}
+        onToggleTheme={toggleTheme}
+        onLogout={handleLogout}
+        onUpdateProfile={handleUpdateProfile}
+        leaveRequests={leaveRequests}
+        onSubmitLeave={handleAddLeave}
+        onUpdateLeaveStatus={handleUpdateLeaveStatus}
+        claims={claims}
+        onSubmitClaim={handleAddClaim}
+        onUpdateClaimStatus={handleUpdateClaimStatus}
+        attendanceRecords={attendanceRecords}
+        attendanceStatus={attendanceStatus}
+        onClockToggle={handleClockToggle}
+        tickets={tickets}
+        onAddTicket={handleAddTicket}
+        onUpdateTicketStatus={handleUpdateTicketStatus}
+        announcements={announcements}
+        onAddAnnouncement={handleAddAnnouncement}
+        departments={departments}
+        assets={assets}
+        sprints={sprints}
+        allUsers={allEmployees}
+        onAddAsset={handleAddAsset}
+        orgTree={orgTree}
+      />
     </div>
   );
 }

@@ -2,7 +2,7 @@
  * Authentication Service for Monolith Enterprise ERP
  * Handles user login, registration, session persistence, and role verification.
  */
-import { db } from "./db";
+import { db } from "./db.js";
 
 const AUTH_SESSION_KEY = "monolith_auth_session";
 

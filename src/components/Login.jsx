@@ -245,9 +245,12 @@ export default function Login({ onLogin, onRegister }) {
               </button>
 
               <div style={{ marginTop: "16px", padding: "10px 12px", borderRadius: "var(--radius-sm)", backgroundColor: "var(--bg-surface-elevated)", border: "1px solid var(--border-subtle)", fontSize: "11.5px", color: "var(--text-secondary)" }}>
-                <div style={{ fontWeight: 600, color: "var(--text-primary)", marginBottom: "4px" }}>Seed Test Accounts:</div>
-                <div>• <strong>Admin:</strong> <span style={{ fontFamily: "var(--font-mono)" }}>admin@company.com</span> / <span style={{ fontFamily: "var(--font-mono)" }}>password123</span></div>
-                <div>• <strong>Staff:</strong> <span style={{ fontFamily: "var(--font-mono)" }}>employee@company.com</span> / <span style={{ fontFamily: "var(--font-mono)" }}>password123</span></div>
+                <div style={{ fontWeight: 600, color: "var(--text-primary)", marginBottom: "4px" }}>5-Tier Enterprise Seed Accounts (Password: <span style={{ fontFamily: "var(--font-mono)" }}>password123</span>):</div>
+                <div>• <strong>Tier 5 • CEO / C-Suite:</strong> <span style={{ fontFamily: "var(--font-mono)" }}>ceo@company.com</span></div>
+                <div>• <strong>Tier 4 • VP of People / Admin:</strong> <span style={{ fontFamily: "var(--font-mono)" }}>admin@company.com</span></div>
+                <div>• <strong>Tier 4 • VP of Engineering:</strong> <span style={{ fontFamily: "var(--font-mono)" }}>vpeng@company.com</span></div>
+                <div>• <strong>Tier 3 • Tech Lead / Manager:</strong> <span style={{ fontFamily: "var(--font-mono)" }}>sarah.chen@company.com</span></div>
+                <div>• <strong>Tier 1 • Developer Intern / Staff:</strong> <span style={{ fontFamily: "var(--font-mono)" }}>employee@company.com</span></div>
               </div>
             </form>
           )}
