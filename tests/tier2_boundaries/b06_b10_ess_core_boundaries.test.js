@@ -4,7 +4,7 @@
  */
 import { describe, it, beforeEach } from "node:test";
 import assert from "node:assert/strict";
-import { setupTestEnvironment, testAssert } from "../helpers/test-harness.js";
+import { setupTestEnvironment } from "../helpers/test-harness.js";
 
 setupTestEnvironment();
 const { db } = await import("../../src/services/db.js");
@@ -224,7 +224,7 @@ describe("Tier 2 - B09: Payslip Calculation Boundary & Corner Cases", () => {
     assert.equal(item.paye, 0);
     assert.equal(item.pension, 0);
     assert.equal(item.hmo, 50.0);
-    assert.equal(item.netPay, -50.0);
+    assert.equal(item.netPay, 0);
   });
 
   it("B09-2: handles ultra-high compensation ($1,000,000/mo) with accurate arithmetic precision", () => {

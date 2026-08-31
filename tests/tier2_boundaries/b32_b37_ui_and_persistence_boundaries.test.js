@@ -235,7 +235,7 @@ describe("Tier 2 - B36: Supabase Realtime Sync Boundary & Corner Cases", () => {
     let caught = false;
     try {
       faultySubscriber();
-    } catch (err) {
+    } catch {
       caught = true;
     }
     assert.equal(caught, true);

@@ -4,8 +4,7 @@
  */
 import { describe, it, beforeEach } from "node:test";
 import assert from "node:assert/strict";
-import { setupTestEnvironment, testAssert } from "../helpers/test-harness.js";
-import { FIXTURES } from "../helpers/fixtures.js";
+import { setupTestEnvironment } from "../helpers/test-harness.js";
 
 setupTestEnvironment();
 const { db } = await import("../../src/services/db.js");

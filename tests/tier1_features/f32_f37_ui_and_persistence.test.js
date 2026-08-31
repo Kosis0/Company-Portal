@@ -57,7 +57,7 @@ describe("Tier 1 - F32: Nordic Minimalist Theme Toggle", () => {
 });
 
 describe("Tier 1 - F33: Mobile Bottom Navigation Bar", () => {
-  function getMobileNavTabs(tier, department) {
+  function getMobileNavTabs(tier) {
     const base = [
       { id: "overview", label: "Overview", icon: "Home" },
       { id: "attendance", label: "Clock", icon: "Clock" },
@@ -71,32 +71,33 @@ describe("Tier 1 - F33: Mobile Bottom Navigation Bar", () => {
   }
 
   it("F33-1: generates 4 thumb-friendly mobile bottom nav destinations for Tier 1 staff", () => {
-    const tabs = getMobileNavTabs(1, "Engineering");
+    const tabs = getMobileNavTabs(1);
     assert.equal(tabs.length, 4);
     assert.equal(tabs[0].id, "overview");
     assert.equal(tabs[1].id, "attendance");
   });
 
   it("F33-2: appends Hub quick destination for Tier 3 Line Managers", () => {
-    const tabs = getMobileNavTabs(3, "Engineering");
+    const tabs = getMobileNavTabs(3);
     assert.equal(tabs.length, 5);
     assert.equal(tabs[4].id, "hub");
   });
 
   it("F33-3: appends Hub destination for Tier 4 Department Directors", () => {
-    const tabs = getMobileNavTabs(4, "Finance & Operations");
+    const tabs = getMobileNavTabs(4);
     assert.equal(tabs.length, 5);
     assert.equal(tabs[4].id, "hub");
   });
 
   it("F33-4: verifies active navigation tab state tracking", () => {
     let activeTab = "overview";
+    assert.equal(activeTab, "overview");
     activeTab = "attendance";
     assert.equal(activeTab, "attendance");
   });
 
   it("F33-5: handles navigation tap event switching active view", () => {
-    const tabs = getMobileNavTabs(1, "Engineering");
+    const tabs = getMobileNavTabs(1);
     const target = tabs.find((t) => t.id === "claims");
     assert.ok(target);
     assert.equal(target.label, "Claims");
@@ -251,6 +252,7 @@ describe("Tier 1 - F36: Supabase Realtime Synchronization", () => {
     });
 
     assert.equal(typeof unsubscribe, "function");
+    assert.equal(eventReceived, false);
     unsubscribe();
   });
 

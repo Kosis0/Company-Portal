@@ -2,7 +2,6 @@
  * Additional Empirical Stress Probes for Milestone 1 (M1)
  * Testing Auth, Department Budget Filtering, User Creation & Edge cases
  */
-import assert from "node:assert/strict";
 
 if (typeof globalThis.localStorage === "undefined") {
   const store = new Map();

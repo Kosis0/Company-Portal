@@ -1,7 +1,6 @@
 /**
  * Check all 4 department budgets on fresh seed data
  */
-import assert from "node:assert/strict";
 
 if (typeof globalThis.localStorage === "undefined") {
   const store = new Map();

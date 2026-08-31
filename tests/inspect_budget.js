@@ -1,7 +1,6 @@
 /**
  * Detailed investigation probe for Department Budget filtering
  */
-import assert from "node:assert/strict";
 
 if (typeof globalThis.localStorage === "undefined") {
   const store = new Map();

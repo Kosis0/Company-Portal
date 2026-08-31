@@ -59,8 +59,8 @@ export const auth = {
 
     const newUser = await db.createUser({
       email: trimmedEmail,
-      password: registrationData.password.trim(),
-      name: registrationData.name.trim(),
+      password: registrationData.password?.trim() || "password123",
+      name: registrationData.name?.trim() || "New Staff",
       title: registrationData.title?.trim() || "Staff Member",
       department: registrationData.department || "Engineering",
       role: registrationData.role || "employee",

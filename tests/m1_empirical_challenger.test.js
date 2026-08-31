@@ -413,7 +413,7 @@ console.log("\n--- SUITE 4: Multi-Stage Workflow & Boundary Mutation Testing ---
 await test("WORKFLOW-01: Leave deduction clamps to zero if requested days exceed balance", async () => {
   db.resetDatabase();
   const user = db.getUserById("USR-008");
-  const initialBal = user.annualLeaveBalance; // 14
+  assert.equal(user.annualLeaveBalance, 14);
 
   // Apply for 30 days of leave (more than 14 available)
   const excessiveLeave = await db.createLeave({
@@ -434,6 +434,7 @@ await test("WORKFLOW-01: Leave deduction clamps to zero if requested days exceed
 await test("WORKFLOW-02: Sick Leave and Casual Leave deduct from their respective balances", async () => {
   db.resetDatabase();
   const user = db.getUserById("USR-008"); // sick: 8, casual: 4
+  assert.equal(user.sickLeaveBalance, 8);
 
   const sickLeave = await db.createLeave({
     userId: "USR-008",
@@ -555,7 +556,6 @@ await test("ADV-02: Department budget utilization calculation when spent exceeds
   db.resetDatabase();
   // Modify department budget to be lower than spent
   const dept = db.getDepartment("DEP-ENG");
-  const origBudget = dept.monthlyBudget;
   dept.monthlyBudget = "$5,000"; // total spent by eng users is > $20,000
   localStorage.setItem(STORAGE_KEYS.DEPARTMENTS, JSON.stringify([dept]));
 

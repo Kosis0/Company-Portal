@@ -194,7 +194,7 @@ describe("Tier 2 - B04: Direct Reports Subtree Boundary & Corner Cases", () => {
 
 describe("Tier 2 - B05: Shell Navigation Boundary & Corner Cases", () => {
   function resolveUserRoute(user) {
-    if (!user || !user.tier) return "login";
+    if (!user || user.tier === undefined || user.tier === null) return "login";
     if (user.tier === 1 || user.tier === 2) return "ess_dashboard";
     if (user.tier === 3) return "team_lead_hub";
     if (user.tier === 4) return "department_hub";

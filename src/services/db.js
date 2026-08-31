@@ -725,23 +725,35 @@ export const db = {
   },
 
   // Returns complete organizational tree starting from CEO (Tier 5)
-  getOrgTree() {
+  getOrgTree(maxDepth = 150) {
     const users = this.getUsers();
     if (!users || users.length === 0) return null;
 
     // Find CEO (Tier 5) or root node without managerId
     const rootUser = users.find((u) => u.tier === 5) || users.find((u) => !u.managerId) || users[0];
+    if (!rootUser) return null;
 
-    const buildNode = (user) => {
-      const reports = users.filter((u) => u.managerId === user.id);
+    const visited = new Set();
+
+    const buildNode = (user, depth = 0) => {
+      if (!user || visited.has(user.id) || depth >= maxDepth) {
+        return null;
+      }
+      visited.add(user.id);
+
+      const reports = users.filter((u) => u.managerId === user.id && !visited.has(u.id));
+      const childNodes = reports
+        .map((child) => buildNode(child, depth + 1))
+        .filter(Boolean);
+
       return {
         ...user,
-        directReportsCount: reports.length,
-        directReports: reports.map(buildNode),
+        directReportsCount: childNodes.length,
+        directReports: childNodes,
       };
     };
 
-    return rootUser ? buildNode(rootUser) : null;
+    return buildNode(rootUser, 0);
   },
 
   async createUser(userData) {
@@ -888,9 +900,17 @@ export const db = {
   },
 
   getDepartment(deptIdOrCode) {
-    if (!deptIdOrCode) return null;
+    if (!deptIdOrCode || typeof deptIdOrCode !== "string") return null;
+    const query = deptIdOrCode.trim().toLowerCase();
     const depts = this.getDepartments();
-    return depts.find((d) => d.id === deptIdOrCode || d.code === deptIdOrCode || d.name.toLowerCase() === deptIdOrCode.toLowerCase()) || null;
+    return (
+      depts.find(
+        (d) =>
+          d.id.toLowerCase() === query ||
+          d.code.toLowerCase() === query ||
+          d.name.toLowerCase() === query
+      ) || null
+    );
   },
 
   getDepartmentByName(deptName) {
@@ -901,10 +921,22 @@ export const db = {
     const dept = this.getDepartment(deptId);
     if (!dept) return null;
 
-    const users = this.getUsers().filter((u) =>
-      u.department === dept.name ||
-      u.department.toLowerCase().includes(dept.code.toLowerCase())
-    );
+    const dName = (dept.name || "").trim().toLowerCase();
+    const dCode = (dept.code || "").trim().toLowerCase();
+    const dId = (dept.id || "").trim().toLowerCase();
+
+    const isUserInDept = (u) => {
+      if (!u || !u.department) return false;
+      const ud = u.department.trim().toLowerCase();
+      if (ud === dName || ud === dCode || ud === dId) return true;
+      if (dName.startsWith(ud) || ud.startsWith(dName)) return true;
+      const udFirst = ud.split(/[\s&/]+/)[0];
+      const dFirst = dName.split(/[\s&/]+/)[0];
+      if (udFirst && dFirst && udFirst === dFirst && udFirst.length > 2) return true;
+      return false;
+    };
+
+    const users = this.getUsers().filter(isUserInDept);
 
     const allocated = parseSalaryNumeric(dept.monthlyBudget, 25000);
     const spent = users.reduce((acc, u) => acc + (u.monthlyBasePay || parseSalaryNumeric(u.salary, 3500)), 0);
@@ -1212,7 +1244,7 @@ export const db = {
       id: leaveData.id || `LV-${Math.floor(100 + Math.random() * 900)}`,
       status: "Pending Manager",
       appliedOn: leaveData.appliedOn || new Date().toISOString().split("T")[0],
-      days: leaveData.days || 1,
+      days: typeof leaveData.days === "number" ? leaveData.days : 1,
       createdAt: new Date().toISOString(),
       ...leaveData,
     };
@@ -1262,6 +1294,11 @@ export const db = {
     if (index === -1) return null;
 
     const leave = leaves[index];
+    // Idempotency guard: if already approved, do not re-deduct balance
+    if (leave.status === "Approved") {
+      return leave;
+    }
+
     const nowIso = new Date().toISOString();
 
     leaves[index] = {
@@ -1277,15 +1314,19 @@ export const db = {
     if (leave.userId) {
       const user = this.getUserById(leave.userId);
       if (user) {
-        const daysToDeduct = leave.days || 1;
+        const deductionDays = typeof leave.days === "number" ? Math.max(0, leave.days) : 1;
+        const currentAnnual = typeof user.annualLeaveBalance === "number" ? user.annualLeaveBalance : 20;
+        const currentSick = typeof user.sickLeaveBalance === "number" ? user.sickLeaveBalance : 10;
+        const currentCasual = typeof user.casualLeaveBalance === "number" ? user.casualLeaveBalance : 5;
+
         const updates = {};
         if (leave.type === "Sick Leave") {
-          updates.sickLeaveBalance = Math.max(0, (user.sickLeaveBalance || 10) - daysToDeduct);
+          updates.sickLeaveBalance = Math.max(0, currentSick - deductionDays);
         } else if (leave.type === "Casual Leave") {
-          updates.casualLeaveBalance = Math.max(0, (user.casualLeaveBalance || 5) - daysToDeduct);
+          updates.casualLeaveBalance = Math.max(0, currentCasual - deductionDays);
         } else {
           // Annual Leave or default
-          updates.annualLeaveBalance = Math.max(0, (user.annualLeaveBalance || 20) - daysToDeduct);
+          updates.annualLeaveBalance = Math.max(0, currentAnnual - deductionDays);
         }
         await this.updateUser(user.id, updates);
       }
@@ -1316,14 +1357,19 @@ export const db = {
     if (index === -1) return null;
 
     const leave = leaves[index];
+    if (leave.status === "Rejected") {
+      return leave;
+    }
+
     const nowIso = new Date().toISOString();
+    const finalReason = reason && reason.trim() ? reason.trim() : "Rejected by reviewer";
 
     leaves[index] = {
       ...leave,
       status: "Rejected",
       approverId: approverId || null,
       approverName: approverName || null,
-      rejectionReason: reason,
+      rejectionReason: finalReason,
       approvedAt: nowIso,
     };
     saveLocal(STORAGE_KEYS.LEAVES, leaves);
@@ -1336,7 +1382,7 @@ export const db = {
             status: "Rejected",
             approver_id: approverId,
             approver_name: approverName,
-            rejection_reason: reason,
+            rejection_reason: finalReason,
             approved_at: nowIso,
           })
           .eq("id", leaveId);
@@ -1435,9 +1481,19 @@ export const db = {
     const index = claims.findIndex((c) => c.id === claimId);
     if (index === -1) return null;
 
+    const claim = claims[index];
+    // If already approved, do not demote back to Pending Finance
+    if (claim.status === "Approved") {
+      return claim;
+    }
+    // If already in Pending Finance, return idempotently
+    if (claim.status === "Pending Finance") {
+      return claim;
+    }
+
     const nowIso = new Date().toISOString();
     claims[index] = {
-      ...claims[index],
+      ...claim,
       status: "Pending Finance",
       leadApproverId: leadId || null,
       leadApproverName: leadName || null,
@@ -1470,16 +1526,22 @@ export const db = {
     const index = claims.findIndex((c) => c.id === claimId);
     if (index === -1) return null;
 
+    const claim = claims[index];
+    // Idempotency: if already approved, preserve existing payout batch ID and return
+    if (claim.status === "Approved") {
+      return claim;
+    }
+
     const nowIso = new Date().toISOString();
     const batchId = payoutBatchId || `BATCH-${new Date().toISOString().split("T")[0].replace(/-/g, "")}-${Math.floor(10 + Math.random() * 90)}`;
 
     claims[index] = {
-      ...claims[index],
+      ...claim,
       status: "Approved",
       financeApproverId: financeId || null,
       financeApproverName: financeName || null,
       financeApprovedAt: nowIso,
-      payoutBatchId: batchId,
+      payoutBatchId: claim.payoutBatchId || batchId,
     };
     saveLocal(STORAGE_KEYS.CLAIMS, claims);
 
@@ -1492,7 +1554,7 @@ export const db = {
             finance_approver_id: financeId,
             finance_approver_name: financeName,
             finance_approved_at: nowIso,
-            payout_batch_id: batchId,
+            payout_batch_id: claims[index].payoutBatchId,
           })
           .eq("id", claimId);
       } catch (err) {
@@ -1509,11 +1571,17 @@ export const db = {
     const index = claims.findIndex((c) => c.id === claimId);
     if (index === -1) return null;
 
+    const claim = claims[index];
+    if (claim.status === "Rejected") {
+      return claim;
+    }
+
+    const finalReason = reason && reason.trim() ? reason.trim() : "Claim rejected by reviewer";
     const nowIso = new Date().toISOString();
     claims[index] = {
-      ...claims[index],
+      ...claim,
       status: "Rejected",
-      rejectionReason: reason,
+      rejectionReason: finalReason,
       rejectedById: rejectorId || null,
       rejectedByName: rejectorName || null,
       rejectedAt: nowIso,
