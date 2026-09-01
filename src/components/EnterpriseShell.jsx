@@ -8,6 +8,7 @@ import {
   Receipt,
   ShieldPlus,
   TrendingUp,
+  TrendingDown,
   Sun,
   Moon,
   Menu,
@@ -30,12 +31,32 @@ import {
   Layers,
   LogOut,
   Users,
-  Crown
+  Crown,
+  Search,
+  Package,
+  Truck,
+  AlertTriangle,
+  AlertOctagon,
+  CheckCircle2,
+  DollarSign,
+  Flame,
+  Send,
+  Check,
+  Boxes,
+  ArrowUpRight,
+  ArrowDownRight,
 } from "lucide-react";
 import OrgChart from "./OrgChart";
 import TeamLeadHub from "./TeamLeadHub";
 import DepartmentHubs from "./DepartmentHubs";
 import ExecutiveCockpit from "./ExecutiveCockpit";
+import {
+  RevenueExpensesTrendChart,
+  SalesByRegionDonutChart,
+  CashFlowForecastChart,
+  TopOperatingExpensesChart,
+} from "./AnalyticsCharts";
+import { ShipmentTimeline } from "./ShipmentTimeline";
 
 export default function EnterpriseShell({
   currentUser,
@@ -62,9 +83,10 @@ export default function EnterpriseShell({
   onAddAsset,
   orgTree,
 }) {
-  const [activeNav, setActiveNav] = useState("dashboard");
+  const [activeNav, setActiveNav] = useState("overview");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const [globalSearch, setGlobalSearch] = useState("");
 
   // Modals state
   const [showLeaveModal, setShowLeaveModal] = useState(false);
@@ -72,6 +94,55 @@ export default function EnterpriseShell({
   const [selectedPayslip, setSelectedPayslip] = useState(null);
   const [selectedUserDossier, setSelectedUserDossier] = useState(null);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
+
+  // Operational State for Financials & Invoices
+  const [invoices, setInvoices] = useState([
+    { id: "INV-2026-089", customer: "Apex Technologies Inc.", email: "ap@apextech.io", issueDate: "2026-08-01", dueDate: "2026-08-15", amount: "$345,000.00", daysOverdue: 17, status: "Overdue" },
+    { id: "INV-2026-092", customer: "Horizon Global Logistics Ltd", email: "billing@horizonlog.com", issueDate: "2026-08-05", dueDate: "2026-08-20", amount: "$180,000.00", daysOverdue: 12, status: "Overdue" },
+    { id: "INV-2026-095", customer: "Vertex Nordic Semiconductor", email: "finance@vertexnordic.se", issueDate: "2026-08-10", dueDate: "2026-08-25", amount: "$95,000.00", daysOverdue: 7, status: "Overdue" },
+    { id: "INV-2026-098", customer: "Sterling Energy Corp", email: "accounts@sterlingcorp.com", issueDate: "2026-08-20", dueDate: "2026-09-05", amount: "$420,000.00", daysOverdue: 0, status: "Due Soon" },
+    { id: "INV-2026-101", customer: "Solaria Power Systems", email: "payables@solaria.eu", issueDate: "2026-08-25", dueDate: "2026-09-10", amount: "$200,000.00", daysOverdue: 0, status: "Pending" },
+  ]);
+
+  // Operational State for Inventory & Stock Alerts
+  const [stockAlerts, setStockAlerts] = useState([
+    { sku: "SKU-9901", name: "Apex Sensor Modules", category: "Hardware Components", currentStock: 14, minThreshold: 50, supplier: "Apex Silicon Dist.", unitCost: "$45.00", status: "Critical" },
+    { sku: "SKU-9904", name: "High-Density Optical Transceivers", category: "Network Equipment", currentStock: 8, minThreshold: 30, supplier: "Global Logistics", unitCost: "$120.00", status: "Critical" },
+    { sku: "SKU-9908", name: "Monolith Micro-Controllers v2", category: "Microchips", currentStock: 22, minThreshold: 60, supplier: "Monolith Raw Mat.", unitCost: "$18.50", status: "Low Stock" },
+    { sku: "SKU-9912", name: "Enterprise NVMe SSD 2TB", category: "Storage Hardware", currentStock: 19, minThreshold: 40, supplier: "Supplier ABC", unitCost: "$85.00", status: "Low Stock" },
+  ]);
+
+  const [notificationToast, setNotificationToast] = useState(null);
+
+  const showToast = (message) => {
+    setNotificationToast(message);
+    setTimeout(() => setNotificationToast(null), 3500);
+  };
+
+  const handleSendReminder = (invId, customer) => {
+    showToast(`Payment reminder dispatched to ${customer} for invoice ${invId}`);
+  };
+
+  const handleMarkInvoicePaid = (invId) => {
+    setInvoices((prev) =>
+      prev.map((inv) =>
+        inv.id === invId ? { ...inv, status: "Paid", daysOverdue: 0 } : inv
+      )
+    );
+    showToast(`Invoice ${invId} marked as settled.`);
+  };
+
+  const handleCreatePO = (item) => {
+    const poNumber = `PO-${item.sku.replace(/\D/g, "")}`;
+    setStockAlerts((prev) =>
+      prev.map((alertItem) =>
+        alertItem.sku === item.sku
+          ? { ...alertItem, currentStock: alertItem.minThreshold + 20, status: "Adequate" }
+          : alertItem
+      )
+    );
+    showToast(`Purchase Order ${poNumber} created for ${item.name} (${item.minThreshold - item.currentStock + 20} units) from ${item.supplier}`);
+  };
 
   // Direct reports & permissions checks
   const isManager = Boolean(currentUser.tier >= 3 || allUsers.some((u) => u.managerId === currentUser.id));
@@ -199,8 +270,38 @@ export default function EnterpriseShell({
     },
   ];
 
+  const recentActivities = [
+    { id: "ACT-01", actor: "Dr. Alexander Vance", role: "CEO", department: "Executive", action: "Published strategic Q3 enterprise bulletin", timestamp: "12m ago", status: "Active" },
+    { id: "ACT-02", actor: "Marcus Brody", role: "Head of Finance", department: "Finance", action: "Executed August Company Batch Payroll ($68,500)", timestamp: "45m ago", status: "Executed" },
+    { id: "ACT-03", actor: "Victoria Sterling", role: "VP HR", department: "HR", action: "Approved Level-1 Leave Request LV-201 (5 days)", timestamp: "1h ago", status: "Approved" },
+    { id: "ACT-04", actor: "Sarah Chen", role: "Frontend Lead", department: "Engineering", action: "Verified Out-of-Pocket Expense Claim CLM-301", timestamp: "2h ago", status: "Verified" },
+    { id: "ACT-05", actor: "Tunde Bakare", role: "VP Engineering", department: "Engineering", action: "Requisitioned Cloud Sandbox AWS-PROD-EAST", timestamp: "3h ago", status: "Active" },
+    { id: "ACT-06", actor: "David Okonjo", role: "DevOps Lead", department: "Engineering", action: "Allocated MacBook Pro M3 (AST-105) to Design", timestamp: "4h ago", status: "Completed" },
+    { id: "ACT-07", actor: "Global Logistics", role: "Carrier", department: "Supply Chain", action: "Inbound Shipment SHP-001 arriving tomorrow", timestamp: "5h ago", status: "In Transit" },
+  ];
+
+  const topProducts = [
+    { sku: "SKU-1001", name: "Apex Industrial Edge Controller", category: "Industrial IoT", unitsSold: "1,240", revenue: "$496,000", margin: "42.5%", status: "In Stock" },
+    { sku: "SKU-1002", name: "Monolith Core Processor v4", category: "Semiconductors", unitsSold: "980", revenue: "$784,000", margin: "51.2%", status: "In Stock" },
+    { sku: "SKU-1003", name: "Enterprise Mesh Gateway Pro", category: "Networking", unitsSold: "750", revenue: "$225,000", margin: "38.0%", status: "Low Stock" },
+    { sku: "SKU-1004", name: "Secure Enclave HSM Module", category: "Security Hardware", unitsSold: "620", revenue: "$310,000", margin: "64.0%", status: "In Stock" },
+  ];
+
   return (
     <div className="app-container">
+      {/* Dynamic Action Toast */}
+      {notificationToast && (
+        <div className="toast-container">
+          <div className="toast toast-info">
+            <CheckCircle2 className="toast-icon" color="var(--brand-sage)" />
+            <div className="toast-content">
+              <h4>System Notification</h4>
+              <p>{notificationToast}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Mobile Drawer Overlay */}
       <div
         className={`sidebar-backdrop ${mobileMenuOpen ? "is-open" : ""}`}
@@ -228,16 +329,35 @@ export default function EnterpriseShell({
         </div>
 
         <div className="sidebar-nav">
-          {/* SECTION 1: PERSONAL WORKSPACE */}
-          <div className="sidebar-section-title">MY WORKSPACE</div>
+          {/* SECTION 1: OPERATIONS */}
+          <div className="sidebar-section-title">OPERATIONS</div>
           <button
             type="button"
-            className={`nav-item ${activeNav === "dashboard" ? "active" : ""}`}
-            onClick={() => { setActiveNav("dashboard"); setMobileMenuOpen(false); }}
+            className={`nav-item ${activeNav === "overview" || activeNav === "dashboard" ? "active" : ""}`}
+            onClick={() => { setActiveNav("overview"); setMobileMenuOpen(false); }}
           >
             <LayoutDashboard className="nav-item-icon" />
-            <span>Overview</span>
+            <span>Organization Overview</span>
           </button>
+          <button
+            type="button"
+            className={`nav-item ${activeNav === "financials" ? "active" : ""}`}
+            onClick={() => { setActiveNav("financials"); setMobileMenuOpen(false); }}
+          >
+            <TrendingUp className="nav-item-icon" />
+            <span>Financial Performance</span>
+          </button>
+          <button
+            type="button"
+            className={`nav-item ${activeNav === "inventory" ? "active" : ""}`}
+            onClick={() => { setActiveNav("inventory"); setMobileMenuOpen(false); }}
+          >
+            <Package className="nav-item-icon" />
+            <span>Inventory & Supply Chain</span>
+          </button>
+
+          {/* SECTION 2: PERSONAL WORKSPACE */}
+          <div className="sidebar-section-title" style={{ marginTop: "12px" }}>MY WORKSPACE</div>
           <button
             type="button"
             className={`nav-item ${activeNav === "profile" ? "active" : ""}`}
@@ -280,6 +400,9 @@ export default function EnterpriseShell({
           >
             <Receipt className="nav-item-icon" />
             <span>Reimbursements</span>
+            {myClaims.filter(c => c.status !== "Approved").length > 0 && (
+              <span className="nav-item-badge">{myClaims.filter(c => c.status !== "Approved").length}</span>
+            )}
           </button>
           <button
             type="button"
@@ -294,14 +417,14 @@ export default function EnterpriseShell({
             className={`nav-item ${activeNav === "okrs" ? "active" : ""}`}
             onClick={() => { setActiveNav("okrs"); setMobileMenuOpen(false); }}
           >
-            <TrendingUp className="nav-item-icon" />
+            <Activity className="nav-item-icon" />
             <span>OKRs & Performance</span>
           </button>
 
-          {/* SECTION 2: TEAM LEAD HUB (TIER 3+) */}
+          {/* SECTION 3: TEAM LEAD HUB (TIER 3+) */}
           {isManager && (
             <>
-              <div className="sidebar-section-title" style={{ marginTop: "16px" }}>
+              <div className="sidebar-section-title" style={{ marginTop: "12px" }}>
                 PEOPLE MANAGEMENT
               </div>
               <button
@@ -320,10 +443,10 @@ export default function EnterpriseShell({
             </>
           )}
 
-          {/* SECTION 3: DEPARTMENT TOOLKITS */}
+          {/* SECTION 4: DEPARTMENT TOOLKITS */}
           {(isDirector || isExecutive || currentUser.department !== "Executive") && (
             <>
-              <div className="sidebar-section-title" style={{ marginTop: "16px" }}>
+              <div className="sidebar-section-title" style={{ marginTop: "12px" }}>
                 DEPARTMENT TOOLKIT
               </div>
               <button
@@ -337,8 +460,8 @@ export default function EnterpriseShell({
             </>
           )}
 
-          {/* SECTION 4: ORGANIZATION & ORG CHART */}
-          <div className="sidebar-section-title" style={{ marginTop: "16px" }}>
+          {/* SECTION 5: ORGANIZATION */}
+          <div className="sidebar-section-title" style={{ marginTop: "12px" }}>
             ORGANIZATION
           </div>
           <button
@@ -350,10 +473,10 @@ export default function EnterpriseShell({
             <span>Interactive Org Tree</span>
           </button>
 
-          {/* SECTION 5: EXECUTIVE COCKPIT (TIER 5) */}
+          {/* SECTION 6: EXECUTIVE SUITE (TIER 5) */}
           {isExecutive && (
             <>
-              <div className="sidebar-section-title" style={{ marginTop: "16px" }}>
+              <div className="sidebar-section-title" style={{ marginTop: "12px" }}>
                 EXECUTIVE SUITE
               </div>
               <button
@@ -408,14 +531,44 @@ export default function EnterpriseShell({
             <div className="top-navbar-breadcrumb">
               <span>{currentUser.department}</span>
               <span>/</span>
-              <span className="current">{activeNav.replace("_", " ").toUpperCase()}</span>
+              <span className="current">
+                {activeNav === "dashboard" || activeNav === "overview"
+                  ? "ORGANIZATION OVERVIEW"
+                  : activeNav.replace("_", " ").toUpperCase()}
+              </span>
+            </div>
+          </div>
+
+          {/* Rounded Search Bar */}
+          <div className="top-navbar-search">
+            <div className="top-search-wrapper">
+              <Search className="top-search-icon" size={15} />
+              <input
+                type="text"
+                className="top-search-input"
+                placeholder="Search workforce, invoices, inventory, reports..."
+                value={globalSearch}
+                onChange={(e) => setGlobalSearch(e.target.value)}
+              />
             </div>
           </div>
 
           <div className="top-navbar-right">
+            {/* Notification Bell with indicator dot */}
+            <button
+              type="button"
+              className="notification-btn"
+              title="Notifications"
+              aria-label="Notifications"
+              onClick={() => showToast("3 Active Alerts: 1 Overdue Customer Invoice, 2 Low Stock Threshold Alerts, 1 Pending Team Leave.")}
+            >
+              <Bell size={16} />
+              <span className="notification-dot" />
+            </button>
+
             {/* Live Tier Chip */}
             <span className="badge badge-neutral" style={{ fontSize: "11px", display: "flex", alignItems: "center", gap: "5px" }}>
-              <ShieldCheck size={13} color="var(--accent-primary)" />
+              <ShieldCheck size={13} color="var(--brand-sage)" />
               <span>{getTierLabel(currentUser.tier)}</span>
             </span>
 
@@ -441,6 +594,15 @@ export default function EnterpriseShell({
               {theme === "light" ? <Moon size={16} /> : <Sun size={16} />}
             </button>
 
+            {/* Circular User Avatar */}
+            <div
+              className="header-user-avatar"
+              onClick={() => setActiveNav("profile")}
+              title={`${currentUser.name} (${currentUser.title})`}
+            >
+              {currentUser.avatarInitials || currentUser.name.split(" ").map(n => n[0]).slice(0, 2).join("")}
+            </div>
+
             {/* Logout Button */}
             <button
               type="button"
@@ -456,8 +618,8 @@ export default function EnterpriseShell({
 
         {/* Content Area */}
         <div className="content-area">
-          {/* TAB 1: PERSONAL DASHBOARD */}
-          {activeNav === "dashboard" && (
+          {/* TAB 1: ORGANIZATION OVERVIEW DASHBOARD */}
+          {(activeNav === "overview" || activeNav === "dashboard") && (
             <div>
               {/* Mobile Hero Attendance Widget */}
               <div className="mobile-clock-hero-card">
@@ -469,7 +631,7 @@ export default function EnterpriseShell({
                     {attendanceStatus?.isClockedIn ? formatTimer(elapsedSeconds) : "00:00:00"}
                   </div>
                   <div style={{ fontSize: "12px", color: "var(--text-secondary)", marginTop: "4px", display: "flex", alignItems: "center", gap: "6px" }}>
-                    <Activity size={13} color={attendanceStatus?.isClockedIn ? "var(--success)" : "var(--text-tertiary)"} />
+                    <Activity size={13} color={attendanceStatus?.isClockedIn ? "var(--brand-sage)" : "var(--text-tertiary)"} />
                     <span>{attendanceStatus?.isClockedIn ? `Clocked in at ${attendanceStatus.clockInTime}` : "Shift standard: 09:00 - 17:00"}</span>
                   </div>
                 </div>
@@ -487,103 +649,193 @@ export default function EnterpriseShell({
 
               <div className="page-header">
                 <div className="page-title">
-                  <h1>Welcome back, {currentUser.name.split(" ")[0]}</h1>
-                  <p>{currentUser.title} • {currentUser.department} (Reporting to {currentUser.managerName || "Board"})</p>
+                  <h1>Organization Overview</h1>
+                  <p>Enterprise health, operational throughput, multi-line trend metrics, and audit activities</p>
                 </div>
                 <div className="page-actions">
-                  <button type="button" className="btn btn-primary" onClick={() => setShowLeaveModal(true)}>
-                    <Plus size={14} />
-                    <span>Apply for Leave</span>
+                  <button type="button" className="btn btn-primary" onClick={() => setActiveNav("financials")}>
+                    <TrendingUp size={14} />
+                    <span>Financial Metrics</span>
                   </button>
-                  <button type="button" className="btn btn-secondary" onClick={() => setShowClaimModal(true)}>
-                    <Receipt size={14} />
-                    <span>Submit Claim</span>
+                  <button type="button" className="btn btn-secondary" onClick={() => setActiveNav("inventory")}>
+                    <Package size={14} />
+                    <span>Supply Chain</span>
                   </button>
                 </div>
               </div>
 
-              {/* Stats Metrics Grid */}
+              {/* 4 Metric Cards */}
               <div className="stats-grid">
                 <div className="stat-card">
                   <div className="stat-card-header">
-                    <span className="stat-card-label">Annual Leave Balance</span>
-                    <div className="stat-icon-wash emerald">
-                      <CalendarRange size={16} />
+                    <span className="stat-card-label">Total Revenue</span>
+                    <div className="stat-icon-wash sage">
+                      <DollarSign size={16} />
                     </div>
                   </div>
-                  <div className="stat-card-value">{currentUser.annualLeaveBalance} Days</div>
+                  <div className="stat-card-value">$13.5M</div>
                   <div className="micro-progress-track">
-                    <div className="micro-progress-fill" style={{ width: `${Math.min(100, (currentUser.annualLeaveBalance / 25) * 100)}%`, backgroundColor: "var(--success)" }} />
+                    <div className="micro-progress-fill" style={{ width: "84%", backgroundColor: "var(--brand-sage)" }} />
                   </div>
                   <div className="stat-card-footer">
-                    <span className="trend-badge up">Available</span>
-                    <span>Accrued statutory balance</span>
+                    <span className="trend-badge up">
+                      <ArrowUpRight size={12} />
+                      <span>+12.4%</span>
+                    </span>
+                    <span>vs. previous month</span>
                   </div>
                 </div>
 
                 <div className="stat-card">
                   <div className="stat-card-header">
-                    <span className="stat-card-label">Pending Claims</span>
-                    <div className="stat-icon-wash amber">
-                      <Receipt size={16} />
+                    <span className="stat-card-label">Company Headcount</span>
+                    <div className="stat-icon-wash neutral">
+                      <Users size={16} />
                     </div>
                   </div>
-                  <div className="stat-card-value">
-                    ${myClaims.filter(c => c.status === "Pending Lead" || c.status === "Pending Finance").reduce((acc, c) => acc + parseInt(c.amount.replace(/[^0-9]/g, "") || 0), 0)}
-                  </div>
+                  <div className="stat-card-value">{allUsers.length || 10} Active</div>
                   <div className="micro-progress-track">
-                    <div className="micro-progress-fill" style={{ width: "40%", backgroundColor: "var(--warning)" }} />
+                    <div className="micro-progress-fill" style={{ width: "92%", backgroundColor: "#475569" }} />
                   </div>
                   <div className="stat-card-footer">
-                    <span>{myClaims.filter(c => c.status !== "Approved").length} in review chain</span>
+                    <span className="trend-badge up">
+                      <ArrowUpRight size={12} />
+                      <span>+4 New</span>
+                    </span>
+                    <span>Q3 Talent Expansion</span>
                   </div>
                 </div>
 
                 <div className="stat-card">
                   <div className="stat-card-header">
-                    <span className="stat-card-label">Net Monthly Salary</span>
-                    <div className="stat-icon-wash indigo">
-                      <Wallet size={16} />
+                    <span className="stat-card-label">Operational Burn</span>
+                    <div className="stat-icon-wash sand">
+                      <Flame size={16} />
                     </div>
                   </div>
-                  <div className="stat-card-value">$2,810.00</div>
+                  <div className="stat-card-value">$68,500/mo</div>
                   <div className="micro-progress-track">
-                    <div className="micro-progress-fill" style={{ width: "82%", backgroundColor: "var(--brand-indigo)" }} />
+                    <div className="micro-progress-fill" style={{ width: "68%", backgroundColor: "var(--accent-sand)" }} />
                   </div>
                   <div className="stat-card-footer">
-                    <span className="trend-badge up">Paid</span>
-                    <span>Gross: {currentUser.salary}</span>
+                    <span className="trend-badge neutral">On Target</span>
+                    <span>-2.1% under forecast</span>
                   </div>
                 </div>
 
                 <div className="stat-card">
                   <div className="stat-card-header">
-                    <span className="stat-card-label">Performance Rating</span>
-                    <div className="stat-icon-wash purple">
-                      <TrendingUp size={16} />
+                    <span className="stat-card-label">System Uptime & SLA</span>
+                    <div className="stat-icon-wash sage">
+                      <ShieldCheck size={16} />
                     </div>
                   </div>
-                  <div className="stat-card-value">{currentUser.score || "4.5 / 5.0"}</div>
+                  <div className="stat-card-value">99.94%</div>
                   <div className="micro-progress-track">
-                    <div className="micro-progress-fill" style={{ width: "90%", backgroundColor: "var(--purple-text)" }} />
+                    <div className="micro-progress-fill" style={{ width: "99.9%", backgroundColor: "var(--brand-sage)" }} />
                   </div>
                   <div className="stat-card-footer">
-                    <span className="trend-badge up">Exceeds</span>
-                    <span>Reviewed by {currentUser.managerName?.split(" ")[0]}</span>
+                    <span className="trend-badge up">
+                      <ArrowUpRight size={12} />
+                      <span>+0.02%</span>
+                    </span>
+                    <span>Enterprise SLA Met</span>
                   </div>
                 </div>
               </div>
 
-              {/* Announcements & Recent Leaves */}
+              {/* Visualization Grid: Trend Multi-line Chart + Donut Segmented Chart */}
+              <div style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr", gap: "16px", marginBottom: "22px" }}>
+                <div className="card">
+                  <RevenueExpensesTrendChart />
+                </div>
+                <div className="card">
+                  <SalesByRegionDonutChart />
+                </div>
+              </div>
+
+              {/* Recent Operational Activities Audit Table */}
+              <div className="card" style={{ marginBottom: "22px" }}>
+                <div className="card-header">
+                  <div>
+                    <span className="card-title">
+                      <Activity size={16} color="var(--brand-sage)" />
+                      <span>Recent Operational Activities</span>
+                    </span>
+                    <span className="card-subtitle">Live real-time multi-department operational event stream</span>
+                  </div>
+                  <span className="badge badge-sage">Live Sync Active</span>
+                </div>
+
+                <div className="table-responsive">
+                  <table className="custom-table">
+                    <thead>
+                      <tr>
+                        <th>Actor & Role</th>
+                        <th>Action & Target</th>
+                        <th>Department</th>
+                        <th>Timestamp</th>
+                        <th>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {recentActivities.map((act) => (
+                        <tr key={act.id}>
+                          <td>
+                            <div style={{ display: "flex", alignItems: "center", gap: "9px" }}>
+                              <div
+                                style={{
+                                  width: "28px",
+                                  height: "28px",
+                                  borderRadius: "6px",
+                                  backgroundColor: "var(--bg-surface-elevated)",
+                                  border: "1px solid var(--border-default)",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  fontSize: "11px",
+                                  fontWeight: 700,
+                                  color: "var(--text-primary)",
+                                  flexShrink: 0,
+                                }}
+                              >
+                                {act.actor.split(" ").map((n) => n[0]).slice(0, 2).join("")}
+                              </div>
+                              <div>
+                                <div style={{ fontWeight: 600, fontSize: "13px" }}>{act.actor}</div>
+                                <div style={{ fontSize: "11px", color: "var(--text-tertiary)" }}>{act.role}</div>
+                              </div>
+                            </div>
+                          </td>
+                          <td style={{ fontWeight: 500 }}>{act.action}</td>
+                          <td>
+                            <span className="badge badge-neutral">{act.department}</span>
+                          </td>
+                          <td style={{ fontSize: "12px", color: "var(--text-tertiary)", fontFamily: "var(--font-mono)" }}>
+                            {act.timestamp}
+                          </td>
+                          <td>
+                            <span className={`badge ${act.status === "Approved" || act.status === "Executed" || act.status === "Completed" ? "badge-sage" : act.status === "In Transit" ? "badge-info" : "badge-neutral"}`}>
+                              {act.status}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Personal Quick Actions & Leaves Row */}
               <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: "16px", marginBottom: "20px" }}>
                 <div className="card">
                   <div className="card-header">
                     <span className="card-title">
                       <CalendarRange size={15} />
-                      <span>My Recent Leave Applications</span>
+                      <span>My Leave Summary</span>
                     </span>
                     <button type="button" className="btn btn-ghost btn-sm" onClick={() => setActiveNav("leaves")}>
-                      <span>View All</span>
+                      <span>Manage Leaves</span>
                       <ChevronRight size={14} />
                     </button>
                   </div>
@@ -610,7 +862,7 @@ export default function EnterpriseShell({
                               <td>{req.dates}</td>
                               <td>{req.days} days</td>
                               <td>
-                                <span className={`badge ${req.status === "Approved" ? "badge-approved" : req.status.includes("Pending") ? "badge-pending" : "badge-rejected"}`}>
+                                <span className={`badge ${req.status === "Approved" ? "badge-sage" : req.status.includes("Pending") ? "badge-pending" : "badge-rejected"}`}>
                                   {req.status}
                                 </span>
                               </td>
@@ -626,7 +878,7 @@ export default function EnterpriseShell({
                   <div className="card-header">
                     <span className="card-title">
                       <Bell size={15} />
-                      <span>Company Bulletins</span>
+                      <span>Strategic Broadcasts</span>
                     </span>
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
@@ -645,6 +897,422 @@ export default function EnterpriseShell({
                       </div>
                     ))}
                   </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 1B: FINANCIAL PERFORMANCE DASHBOARD */}
+          {activeNav === "financials" && (
+            <div>
+              <div className="page-header">
+                <div className="page-title">
+                  <h1>Financial Performance</h1>
+                  <p>Cash flow projections, operating expense breakdowns, and customer accounts receivable</p>
+                </div>
+                <div className="page-actions">
+                  <button type="button" className="btn btn-primary" onClick={() => showToast("Exporting Q3 Comprehensive Financial Statement (CSV/PDF)...")}>
+                    <Download size={14} />
+                    <span>Export Statement</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* 4 Metric Cards */}
+              <div className="stats-grid">
+                <div className="stat-card">
+                  <div className="stat-card-header">
+                    <span className="stat-card-label">Monthly Inflow</span>
+                    <div className="stat-icon-wash sage">
+                      <TrendingUp size={16} />
+                    </div>
+                  </div>
+                  <div className="stat-card-value">$18.0M</div>
+                  <div className="micro-progress-track">
+                    <div className="micro-progress-fill" style={{ width: "90%", backgroundColor: "var(--brand-sage)" }} />
+                  </div>
+                  <div className="stat-card-footer">
+                    <span className="trend-badge up">
+                      <ArrowUpRight size={12} />
+                      <span>+15.2%</span>
+                    </span>
+                    <span>above forecast</span>
+                  </div>
+                </div>
+
+                <div className="stat-card">
+                  <div className="stat-card-header">
+                    <span className="stat-card-label">Monthly Outflow</span>
+                    <div className="stat-icon-wash sand">
+                      <TrendingDown size={16} />
+                    </div>
+                  </div>
+                  <div className="stat-card-value">$8.5M</div>
+                  <div className="micro-progress-track">
+                    <div className="micro-progress-fill" style={{ width: "47%", backgroundColor: "var(--accent-sand)" }} />
+                  </div>
+                  <div className="stat-card-footer">
+                    <span className="trend-badge neutral">
+                      <ArrowDownRight size={12} />
+                      <span>-4.1%</span>
+                    </span>
+                    <span>cost reduction</span>
+                  </div>
+                </div>
+
+                <div className="stat-card">
+                  <div className="stat-card-header">
+                    <span className="stat-card-label">Net Cash Position</span>
+                    <div className="stat-icon-wash sage">
+                      <DollarSign size={16} />
+                    </div>
+                  </div>
+                  <div className="stat-card-value">$42.8M</div>
+                  <div className="micro-progress-track">
+                    <div className="micro-progress-fill" style={{ width: "85%", backgroundColor: "var(--brand-sage)" }} />
+                  </div>
+                  <div className="stat-card-footer">
+                    <span className="trend-badge up">
+                      <ArrowUpRight size={12} />
+                      <span>+24.6%</span>
+                    </span>
+                    <span>Treasury Reserve</span>
+                  </div>
+                </div>
+
+                <div className="stat-card">
+                  <div className="stat-card-header">
+                    <span className="stat-card-label">Outstanding Receivables</span>
+                    <div className="stat-icon-wash terracotta">
+                      <AlertTriangle size={16} />
+                    </div>
+                  </div>
+                  <div className="stat-card-value">$1.24M</div>
+                  <div className="micro-progress-track">
+                    <div className="micro-progress-fill" style={{ width: "28%", backgroundColor: "var(--accent-terracotta)" }} />
+                  </div>
+                  <div className="stat-card-footer">
+                    <span className="trend-badge down">
+                      <span>{invoices.filter((i) => i.status === "Overdue").length} Overdue</span>
+                    </span>
+                    <span>Action required</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Visualizations: Cash Flow Forecast + Top Operating Expenses */}
+              <div style={{ display: "grid", gridTemplateColumns: "1.3fr 1fr", gap: "16px", marginBottom: "22px" }}>
+                <div className="card">
+                  <CashFlowForecastChart />
+                </div>
+                <div className="card">
+                  <TopOperatingExpensesChart />
+                </div>
+              </div>
+
+              {/* Unpaid Customer Invoices Table with Terracotta Badges */}
+              <div className="card">
+                <div className="card-header">
+                  <div>
+                    <span className="card-title">
+                      <Receipt size={16} color="var(--accent-terracotta)" />
+                      <span>Unpaid Customer Invoices & Receivables</span>
+                    </span>
+                    <span className="card-subtitle">Customer invoices pending settlement with automated collection actions</span>
+                  </div>
+                  <span className="badge badge-terracotta">
+                    {invoices.filter((i) => i.status === "Overdue").length} Overdue Notices
+                  </span>
+                </div>
+
+                <div className="table-responsive">
+                  <table className="custom-table">
+                    <thead>
+                      <tr>
+                        <th>Invoice ID</th>
+                        <th>Customer / Client Entity</th>
+                        <th>Issue Date</th>
+                        <th>Due Date</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th style={{ textAlign: "right" }}>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {invoices.map((inv) => (
+                        <tr key={inv.id}>
+                          <td style={{ fontFamily: "var(--font-mono)", fontWeight: 700 }}>{inv.id}</td>
+                          <td>
+                            <div>
+                              <div style={{ fontWeight: 600 }}>{inv.customer}</div>
+                              <div style={{ fontSize: "11px", color: "var(--text-tertiary)" }}>{inv.email}</div>
+                            </div>
+                          </td>
+                          <td style={{ fontSize: "12px", fontFamily: "var(--font-mono)" }}>{inv.issueDate}</td>
+                          <td style={{ fontSize: "12px", fontFamily: "var(--font-mono)" }}>{inv.dueDate}</td>
+                          <td style={{ fontWeight: 700, fontFamily: "var(--font-mono)" }}>{inv.amount}</td>
+                          <td>
+                            {inv.status === "Overdue" ? (
+                              <span className="badge badge-overdue">
+                                {inv.daysOverdue} Days Overdue
+                              </span>
+                            ) : inv.status === "Paid" ? (
+                              <span className="badge badge-sage">Settled</span>
+                            ) : (
+                              <span className="badge badge-sand">{inv.status}</span>
+                            )}
+                          </td>
+                          <td style={{ textAlign: "right" }}>
+                            <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: "6px" }}>
+                              {inv.status !== "Paid" && (
+                                <>
+                                  <button
+                                    type="button"
+                                    className="btn btn-secondary btn-sm"
+                                    onClick={() => handleSendReminder(inv.id, inv.customer)}
+                                    title="Send payment reminder email"
+                                  >
+                                    <Send size={12} />
+                                    <span>Remind</span>
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className="btn btn-sage btn-sm"
+                                    onClick={() => handleMarkInvoicePaid(inv.id)}
+                                    title="Record payment received"
+                                  >
+                                    <Check size={12} />
+                                    <span>Mark Paid</span>
+                                  </button>
+                                </>
+                              )}
+                              {inv.status === "Paid" && (
+                                <span style={{ fontSize: "12px", color: "var(--brand-sage)", fontWeight: 600 }}>
+                                  ✓ Settled
+                                </span>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 1C: INVENTORY & SUPPLY CHAIN DASHBOARD */}
+          {activeNav === "inventory" && (
+            <div>
+              <div className="page-header">
+                <div className="page-title">
+                  <h1>Inventory & Supply Chain</h1>
+                  <p>Stock level monitoring, supplier fulfillment, reorder requisitions, and incoming logistics</p>
+                </div>
+                <div className="page-actions">
+                  <button
+                    type="button"
+                    className="btn btn-sage"
+                    onClick={() => {
+                      showToast("Purchase Requisition wizard opened.");
+                    }}
+                  >
+                    <Plus size={14} />
+                    <span>Create Purchase Order</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* 4 Metric Cards */}
+              <div className="stats-grid">
+                <div className="stat-card">
+                  <div className="stat-card-header">
+                    <span className="stat-card-label">SKUs in Stock</span>
+                    <div className="stat-icon-wash sage">
+                      <Package size={16} />
+                    </div>
+                  </div>
+                  <div className="stat-card-value">2,450 SKUs</div>
+                  <div className="micro-progress-track">
+                    <div className="micro-progress-fill" style={{ width: "98.2%", backgroundColor: "var(--brand-sage)" }} />
+                  </div>
+                  <div className="stat-card-footer">
+                    <span className="trend-badge up">98.2%</span>
+                    <span>Availability Rate</span>
+                  </div>
+                </div>
+
+                <div className="stat-card">
+                  <div className="stat-card-header">
+                    <span className="stat-card-label">Low Stock Items</span>
+                    <div className="stat-icon-wash terracotta">
+                      <AlertOctagon size={16} />
+                    </div>
+                  </div>
+                  <div className="stat-card-value">{stockAlerts.length} Alerts</div>
+                  <div className="micro-progress-track">
+                    <div className="micro-progress-fill" style={{ width: "25%", backgroundColor: "var(--accent-terracotta)" }} />
+                  </div>
+                  <div className="stat-card-footer">
+                    <span className="trend-badge down">Critical</span>
+                    <span>Reorder Required</span>
+                  </div>
+                </div>
+
+                <div className="stat-card">
+                  <div className="stat-card-header">
+                    <span className="stat-card-label">Active Shipments</span>
+                    <div className="stat-icon-wash sage">
+                      <Truck size={16} />
+                    </div>
+                  </div>
+                  <div className="stat-card-value">8 In Transit</div>
+                  <div className="micro-progress-track">
+                    <div className="micro-progress-fill" style={{ width: "75%", backgroundColor: "var(--brand-sage)" }} />
+                  </div>
+                  <div className="stat-card-footer">
+                    <span className="trend-badge up">2 Arriving</span>
+                    <span>Schedule on time</span>
+                  </div>
+                </div>
+
+                <div className="stat-card">
+                  <div className="stat-card-header">
+                    <span className="stat-card-label">Supplier Fulfillment</span>
+                    <div className="stat-icon-wash sage">
+                      <ShieldCheck size={16} />
+                    </div>
+                  </div>
+                  <div className="stat-card-value">99.4%</div>
+                  <div className="micro-progress-track">
+                    <div className="micro-progress-fill" style={{ width: "99.4%", backgroundColor: "var(--brand-sage)" }} />
+                  </div>
+                  <div className="stat-card-footer">
+                    <span className="trend-badge up">+1.2%</span>
+                    <span>Weekly SLA Index</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* 2-Column Grid: Stock Level Alerts (with Sage 'Create PO' buttons) + Connected Shipment Timeline */}
+              <div style={{ display: "grid", gridTemplateColumns: "1.3fr 1fr", gap: "16px", marginBottom: "22px" }}>
+                <div className="card">
+                  <div className="card-header">
+                    <div>
+                      <span className="card-title">
+                        <AlertOctagon size={16} color="var(--accent-terracotta)" />
+                        <span>Stock Level Alerts</span>
+                      </span>
+                      <span className="card-subtitle">Items below safety reorder threshold</span>
+                    </div>
+                    <span className="badge badge-terracotta">{stockAlerts.length} Action Items</span>
+                  </div>
+
+                  <div className="table-responsive">
+                    <table className="custom-table">
+                      <thead>
+                        <tr>
+                          <th>SKU & Name</th>
+                          <th>Stock Level</th>
+                          <th>Supplier</th>
+                          <th style={{ textAlign: "right" }}>Action</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {stockAlerts.map((item) => (
+                          <tr key={item.sku}>
+                            <td>
+                              <div>
+                                <div style={{ fontWeight: 600 }}>{item.name}</div>
+                                <div style={{ fontSize: "11px", color: "var(--text-tertiary)", fontFamily: "var(--font-mono)" }}>
+                                  {item.sku} • {item.category}
+                                </div>
+                              </div>
+                            </td>
+                            <td>
+                              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                                <span style={{ fontWeight: 700, color: "var(--accent-terracotta)", fontFamily: "var(--font-mono)" }}>
+                                  {item.currentStock}
+                                </span>
+                                <span style={{ fontSize: "11px", color: "var(--text-tertiary)" }}>
+                                  / {item.minThreshold} min
+                                </span>
+                                <span className={item.status === "Critical" ? "badge badge-terracotta" : "badge badge-sand"} style={{ fontSize: "10px", padding: "1px 6px" }}>
+                                  {item.status}
+                                </span>
+                              </div>
+                            </td>
+                            <td style={{ fontSize: "12px", color: "var(--text-secondary)" }}>{item.supplier}</td>
+                            <td style={{ textAlign: "right" }}>
+                              <button
+                                type="button"
+                                className="btn btn-sage btn-sm"
+                                onClick={() => handleCreatePO(item)}
+                              >
+                                <Plus size={12} />
+                                <span>Create PO</span>
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <div className="card">
+                  <ShipmentTimeline />
+                </div>
+              </div>
+
+              {/* Top Selling Products Table */}
+              <div className="card">
+                <div className="card-header">
+                  <div>
+                    <span className="card-title">
+                      <Boxes size={16} color="var(--brand-sage)" />
+                      <span>Top Selling Products & High-Velocity Inventory</span>
+                    </span>
+                    <span className="card-subtitle">Volume ranking and gross margin contribution</span>
+                  </div>
+                </div>
+
+                <div className="table-responsive">
+                  <table className="custom-table">
+                    <thead>
+                      <tr>
+                        <th>SKU</th>
+                        <th>Product Name</th>
+                        <th>Category</th>
+                        <th>Units Sold</th>
+                        <th>Total Revenue</th>
+                        <th>Gross Margin</th>
+                        <th>Stock Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {topProducts.map((prod) => (
+                        <tr key={prod.sku}>
+                          <td style={{ fontFamily: "var(--font-mono)", fontWeight: 700 }}>{prod.sku}</td>
+                          <td style={{ fontWeight: 600 }}>{prod.name}</td>
+                          <td>
+                            <span className="badge badge-neutral">{prod.category}</span>
+                          </td>
+                          <td style={{ fontFamily: "var(--font-mono)" }}>{prod.unitsSold} units</td>
+                          <td style={{ fontWeight: 700, fontFamily: "var(--font-mono)" }}>{prod.revenue}</td>
+                          <td style={{ fontFamily: "var(--font-mono)", color: "var(--brand-sage)", fontWeight: 700 }}>
+                            {prod.margin}
+                          </td>
+                          <td>
+                            <span className={`badge ${prod.status === "In Stock" ? "badge-sage" : "badge-sand"}`}>
+                              {prod.status}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               </div>
             </div>

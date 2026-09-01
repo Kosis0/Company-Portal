@@ -1,74 +1,99 @@
-# Handoff Report - Explorer Survey 2
+# Handoff Report: Core Screens, Visualizations & Operational Workflows Survey
 
-**Task:** Domain Analysis, RBAC Hierarchy, Department Toolkits, Multi-Stage Workflows, and Data Schema Specification for Monolith ERP  
-**Agent:** Survey Explorer 2  
-**Date:** 2026-08-31T14:34:00Z  
-**Type:** Hard Handoff  
+**Author:** `teamwork_preview_explorer_survey_2` (Core Screens, Visualizations & Operational Workflows Specialist)  
+**Recipient:** `parent` (`9d65b081-7009-4492-990e-43b2ef0f12b6`)  
+**Workspace:** `c:\Users\kosiu\Desktop\Work\ERP`  
+**Date:** 2026-09-01  
+**Handoff Type:** Hard Handoff (Investigation & Survey Complete)  
 
 ---
 
 ## 1. Observation
 
-1. **Original Request Scope**:
-   - `c:\Users\kosiu\Desktop\Work\ERP\.agents\ORIGINAL_REQUEST.md`: Defines requirements R1 (5-tier hierarchy & RBAC), R2 (department toolkits: Engineering, Finance, HR, IT), R3 (multi-stage approval chains: leaves & 2-stage expense claims), R4 (adaptive unified portal shell & Nordic Minimalist design system), and R5 (Supabase PostgreSQL persistence, real-time WebSocket sync, and offline caching).
+1. **Authoritative Requirements (`ORIGINAL_REQUEST.md`)**:
+   - Visual Design System: Deep Slate Navy sidebar (`#1E293B`) with Monolith / Apex logo and Sage Green active pills (`#3D644B` / `#4E7A5D`), Warm Editorial Cream canvas (`#F6F4EE` / `#FAF8F3`), Crisp White content cards (`#FFFFFF`) with 14px radius and soft border (`1px solid #EAE6DB`), Terracotta / Coral (`#D96B43`) for overdue/reorder alerts, Warm Sand (`#C8A27A` / `#D4A373`) for secondary chart metrics, top navigation bar with rounded search bar and notification bell with indicator dot.
+   - Core Screens:
+     * **Organization Overview**: 4 Metric Cards, Revenue vs Expenses Multi-line trend chart, Sales by Region Donut chart, Recent Activities audit table.
+     * **Financial Performance**: 4 Metric Cards, Cash Flow Forecast grouped bar chart, Top Operating Expenses horizontal bar chart, Unpaid Customer Invoices table with overdue badges.
+     * **Inventory & Supply Chain**: 4 Metric Cards, Stock Level Alerts table with sage green 'Create PO' buttons, Incoming Shipments vertical connected timeline, Top Selling Products table.
+   - Verification criteria: `npm run lint` passes with 0 errors/warnings; `npm run build` passes with 0 errors.
 
-2. **Existing Schema & Data Storage**:
-   - `c:\Users\kosiu\Desktop\Work\ERP\supabase_schema.sql` (Lines 7–98): Contains tables for `users`, `attendance`, `leaves`, `claims`, `tickets`, `announcements`. Noticeably lacks `departments`, `assets`, and `sprints` tables in the SQL file, and users table lacks `tier` (INT) and `manager_id` (FOREIGN KEY) columns.
-   - `c:\Users\kosiu\Desktop\Work\ERP\src\services\db.js` (Lines 8–18, 20–545): Contains rich client-side seed data for 10 users across Tier 1 to Tier 5, 4 departments (`DEP-ENG`, `DEP-HR`, `DEP-FIN`, `DEP-PRD`), 5 IT assets (`AST-101` to `AST-105`), 2 engineering sprints (`SPR-42`, `SPR-43`), plus attendance, leaves, claims, tickets, and announcements.
-   - `c:\Users\kosiu\Desktop\Work\ERP\src\services\db.js` (Lines 570–584): Implements `subscribeToChanges` using `supabase.channel("monolith-enterprise-sync").on("postgres_changes", ...).subscribe()`.
-   - `c:\Users\kosiu\Desktop\Work\ERP\src\services\db.js` (Lines 608–621): Implements `getOrgTree()` which recursively builds the organizational hierarchy tree starting from the CEO (`tier === 5`).
-   - `c:\Users\kosiu\Desktop\Work\ERP\src\services\db.js` (Lines 812–832): Implements leave status update with automatic deduction from `annualLeaveBalance` on approval.
+2. **Existing Screen Implementations**:
+   - `src/components/EnterpriseShell.jsx` (lines 1–1578): Coordinates personal workspace (Dashboard, Profile, Shift Attendance, My Leaves, Payslips, Reimbursements, HMO, OKRs), Team Lead Hub, Department Workspaces, Org Tree, and Executive Cockpit. Does not currently render the 3 target operational dashboards.
+   - `src/components/ExecutiveCockpit.jsx` (lines 1–284): Implements C-suite headcount, monthly payroll outlay, retention, performance score, department allocations, and broadcast notices.
+   - `src/components/DepartmentHubs.jsx` (lines 1–651): Implements Engineering sprints/sandboxes, Finance internal payroll runner & claims, HR talent roster, and IT hardware registry.
 
-3. **Current Routing & UI State**:
-   - `c:\Users\kosiu\Desktop\Work\ERP\src\App.jsx` (Lines 272–309): Currently performs a binary role switch: `currentUser.role === 'admin' ? <HRDashboard /> : <ESSDashboard />`.
-   - `c:\Users\kosiu\Desktop\Work\ERP\package.json` (Lines 6–17): Uses React 19, `@supabase/supabase-js` v2.112.4, `lucide-react` v1.34.0, and Vite v8.2.0.
+3. **Existing Visualization Implementations**:
+   - `src/components/AnalyticsCharts.jsx` (lines 1–586):
+     * `RevenueExpensesTrendChart` (lines 6–222): Pure SVG multi-line trend chart with cubic Bezier curves (`createCurvedPath`), Y-ticks ($0–$15M), interactive hover dots, vertical line, and floating tooltip.
+     * `SalesByRegionDonutChart` (lines 227–372): Pure SVG segmented donut chart with trigonometric arc geometry, center cutout circle with percentage, hover scaling (`scale(1.04)`), and right legend (North America 50%, Europe 30%, Asia 20%).
+     * `CashFlowForecastChart` (lines 377–506): Pure SVG grouped bar chart (Weeks 1–4, Cash In `#3D644B`, Cash Out `#9C948B`, Y-ticks $0–$20M).
+     * `TopOperatingExpensesChart` (lines 511–585): Horizontal ranked progress bars (Payroll $320k, Software $95k, Rent $75k, Marketing $15k, Others $8k).
+     * *Observation:* This file is not currently imported or mounted anywhere in `src/`.
+   - `src/components/ShipmentTimeline.jsx` (lines 1–70):
+     * Pure React vertical connected timeline with background line rail (`var(--brand-green-subtle)`), status node dots (`#3D644B`, `#5A8B6B`, `#8FBBA0`), carrier/timing text, and date badges.
+     * *Observation:* This file is not currently imported or mounted anywhere in `src/`.
 
-4. **Build and Lint Status**:
-   - Command `npm run lint` completed with 0 errors and 0 warnings (exit code 0).
-   - Command `npm run build` completed successfully, producing production bundle in 8.27s (exit code 0).
+4. **Linter & Build Output**:
+   - Running `npm run lint` produced 7 errors:
+     * `src/components/AnalyticsCharts.jsx:34:9`: `'revenuePoints' is assigned a value but never used (no-unused-vars)`
+     * `src/components/AnalyticsCharts.jsx:35:9`: `'expensesPoints' is assigned a value but never used (no-unused-vars)`
+     * `src/components/AnalyticsCharts.jsx:247:5`: `'react-hooks/immutability' Error: Cannot reassign variable after render completes (cumulativeAngle += angle)`
+     * `src/components/ShipmentTimeline.jsx:1:10`: `'Truck' is defined but never used (no-unused-vars)`
+     * `src/components/ShipmentTimeline.jsx:1:17`: `'CheckCircle2' is defined but never used (no-unused-vars)`
+     * `src/components/ShipmentTimeline.jsx:1:31`: `'Clock' is defined but never used (no-unused-vars)`
+     * `src/components/ShipmentTimeline.jsx:1:38`: `'Calendar' is defined but never used (no-unused-vars)`
+   - Running `npm run build` completed successfully in 7.18s with 0 errors.
+   - Running `node tests/m1_database_relational.test.js` passed 16/16 tests cleanly.
 
 ---
 
 ## 2. Logic Chain
 
-1. **From Observation 1 and 3**: The user request specifies a 5-tier organizational hierarchy (Tier 1 Staff, Tier 2 Contributor, Tier 3 Lead, Tier 4 Director/Admin, Tier 5 Executive/CEO). However, `App.jsx` currently splits between two static monolithic dashboards (`HRDashboard` and `ESSDashboard`) based on binary `role === 'admin'`.
-   - *Inference*: The frontend architecture must transition to an Adaptive Unified Portal Shell that dynamically renders modules, sidebar navigation, mobile bottom navigation bars, and hub views based on `currentUser.tier`, `currentUser.department`, and whether `currentUser` has direct reports (`db.getDirectReports(currentUser.id).length > 0`).
-
-2. **From Observation 2**: While `db.js` possesses mock structures for departments, assets, and sprints, the live `supabase_schema.sql` lacks table definitions for `departments`, `assets`, and `sprints`, and lacks `tier`, `manager_id`, `lead_approver_id`, and `finance_approver_id` foreign keys.
-   - *Inference*: To ensure seamless multi-device persistence and cloud sync under R5, `supabase_schema.sql` must be upgraded to version 2.0 with all 9 core tables, appropriate foreign key constraints, indexes, and realtime publication bindings (`ALTER PUBLICATION supabase_realtime ADD TABLE ...`).
-
-3. **From Observation 2 and R3 Requirements**: Leave approvals require automatic balance deduction and calendar updates, while expense claims require a 2-stage lifecycle (`Pending Lead` -> `Pending Finance` -> `Approved`).
-   - *Inference*: State machines must be codified in `db.js` with explicit guards: Level-1 leave and claim reviews scoped strictly to direct reports (`managerId === lead.id`), Level-2 claim payouts scoped to Finance Leads (`role === 'finance'` / `department === 'Finance & Operations'`).
-
-4. **From Observation 4**: The build and linting pipelines are fully clean and passing, confirming a stable foundation for implementing the adaptive shell and specialized department toolkits.
+1. From **Observation 1 & 2**, the existing codebase has rich workforce management workflows (Tiers 1–5, approvals, attendance, payroll) but is missing dedicated dashboard views for Organization Overview, Financial Performance, and Inventory & Supply Chain.
+2. From **Observation 3**, the custom SVG charting and timeline components already match the mathematical and geometric requirements of the target visual reference, but were left orphaned in separate files without UI integration.
+3. From **Observation 1 & 3**, the visual styling in `src/index.css` must be adapted to use the exact color tokens: Deep Slate Navy (`#1E293B`), Sage Green (`#3D644B`), Editorial Cream (`#F6F4EE`), Warm Sand (`#C8A27A`), and Terracotta (`#D96B43`), along with 14px card radii and soft `#EAE6DB` borders.
+4. From **Observation 4**, the 7 linter errors in `AnalyticsCharts.jsx` and `ShipmentTimeline.jsx` are straightforward to resolve (removing unused imports/variables and avoiding outer variable reassignment during arc calculation) to achieve 0 lint errors/warnings.
+5. Therefore, a structured 4-phase implementation plan (Design Tokens → Dashboard Views → Shell Navigation & Data Hooks → Verification) will fulfill all functional and aesthetic requirements while maintaining 100% test passing and clean build/lint compliance.
 
 ---
 
 ## 3. Caveats
 
-1. **Authentication Mode**: Currently, authentication is executed locally against `db.js` users with token persistence in `localStorage`, plus optional Supabase client synchronization. This dual-write pattern ensures instantaneous sub-millisecond local latency and 100% offline capability.
-2. **Supabase Environment Variables**: In environments where `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` are not configured, the application falls back seamlessly to `localStorage` caching with full CRUD capability and pre-seeded enterprise data.
-3. **Receipt Files**: Expense claims currently store receipt filenames/mock PDF references. Full cloud storage binary file upload would require a Supabase Storage bucket policy if configured.
+1. **Mock vs Live Backend Feeds**: While `db.js` provides Supabase sync and offline localStorage fallback for the 9 database tables, newly added operational entities (Recent Activities, Customer Invoices, Stock Alert SKUs, POs) will be seeded in `db.js` with offline caching and ready for Supabase schema migration if needed.
+2. **Chart Responsiveness**: The SVG charts use fixed viewBox coordinates (`580x220`, `180x180`, `560x210`) with `width: 100%; height: auto;`. Testing on small mobile viewports (<= 480px) is recommended to ensure legends wrap cleanly.
 
 ---
 
 ## 4. Conclusion
 
-1. The domain models, 5-tier RBAC rules, department toolkits (Engineering, Finance, HR, IT), 2-stage approval state machines, and complete 9-table Supabase PostgreSQL DDL have been comprehensively mapped out and documented in `.agents/explorer_survey_2/report.md`.
-2. The implementation roadmap is clear:
-   - Upgrade `supabase_schema.sql` to include all 9 tables, relations, and realtime triggers.
-   - Refactor `App.jsx` into an Adaptive Unified Portal Shell that renders Tier 1/2 ESS workspaces, Tier 3 Team Lead Hub, Tier 4 Department Hubs (Eng, Fin, HR, IT), and Tier 5 Executive Command Cockpit.
-   - Wire multi-stage approval actions with automated leave balance deduction and live sync.
+The application is well-positioned for the visual and operational overhaul:
+- The SVG charting engine in `AnalyticsCharts.jsx` and `ShipmentTimeline.jsx` is robust and ready for integration.
+- The 3 required operational screens (**Organization Overview**, **Financial Performance**, and **Inventory & Supply Chain**) can be created as clean modular components and wired into `EnterpriseShell.jsx`.
+- All design system tokens (Slate Navy `#1E293B`, Sage Green `#3D644B`, Cream Canvas `#F6F4EE`, Terracotta `#D96B43`) and UI controls ('Create PO' sage buttons, overdue badges, search bar, notification bell) are mapped out in `analysis.md`.
+- Fixing the 7 identified lint errors will guarantee zero-warning / zero-error lint compliance.
 
 ---
 
 ## 5. Verification Method
 
-To independently verify the findings and specifications:
-1. Inspect the detailed report:
-   `view_file AbsolutePath="c:\Users\kosiu\Desktop\Work\ERP\.agents\explorer_survey_2\report.md"`
-2. Inspect the current schema vs new DDL:
-   `view_file AbsolutePath="c:\Users\kosiu\Desktop\Work\ERP\supabase_schema.sql"`
-3. Verify project build and lint validity:
-   - Run `npm run lint` in `c:\Users\kosiu\Desktop\Work\ERP` (must exit 0 with 0 errors).
-   - Run `npm run build` in `c:\Users\kosiu\Desktop\Work\ERP` (must exit 0 and compile `dist/`).
+To verify these findings and check implementation readiness:
+1. **Linter Check**:
+   ```bash
+   npm run lint
+   ```
+   *Expectation:* Identifies the exact 7 issues in `AnalyticsCharts.jsx` and `ShipmentTimeline.jsx` before fix, and 0 errors / 0 warnings after fix.
+2. **Build Verification**:
+   ```bash
+   npm run build
+   ```
+   *Expectation:* Vite compiles production assets into `dist/` with exit code 0.
+3. **Relational Database Tests**:
+   ```bash
+   node tests/m1_database_relational.test.js
+   ```
+   *Expectation:* 16/16 unit and relational tests pass cleanly.
+4. **File Inspection**:
+   - Detailed survey report: `c:\Users\kosiu\Desktop\Work\ERP\.agents\explorer_survey_2\analysis.md`
+   - Master blueprint: `c:\Users\kosiu\Desktop\Work\ERP\PROJECT.md`
+   - Authoritative requirements: `c:\Users\kosiu\Desktop\Work\ERP\ORIGINAL_REQUEST.md`

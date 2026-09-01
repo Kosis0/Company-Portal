@@ -1,26 +1,14 @@
-# Gate Status Tracking
+# Master Quality Gate Status
 
-## Gate — Milestone 1 (Iteration 1)
-| Agent | Role | Verdict | Source |
-|---|---|---|---|
-| reviewer_m1_1 | teamwork_preview_reviewer | APPROVE | handoff.md |
-| reviewer_m1_2 | teamwork_preview_reviewer | REQUEST_CHANGES | handoff.md |
-| challenger_m1_1 | teamwork_preview_challenger | REQUEST_CHANGES | handoff.md |
-| challenger_m1_2 | teamwork_preview_challenger | APPROVE | handoff.md |
-| auditor_m1 | teamwork_preview_auditor | CLEAN | handoff.md |
+## Gate — Iteration 1
+| Agent | Role | Verdict | Source | Notes |
+|---|---|---|---|---|
+| worker_m1_m2 | teamwork_preview_worker | DONE (pass) | worker_m1_m2/handoff.md | 0 lint errors, build pass, 16/16 test pass |
+| test_writer_e2e | teamwork_preview_test_writer | DONE (pass) | test_writer_e2e/handoff.md | TEST_READY.md published (159/159 tests pass) |
+| reviewer_1 | teamwork_preview_reviewer | APPROVE | reviewer_1/handoff.md | UI, Components & Layout Review (0 lint, build pass, 159 tests) |
+| reviewer_2 | teamwork_preview_reviewer | APPROVE | reviewer_2/handoff.md | RBAC, Data & Sync Review (0 lint, build pass, 184 tests) |
+| challenger_1 | teamwork_preview_challenger | APPROVE | challenger_1/handoff.md | Adversarial Visualizations Stress-Testing (26 probes passed) |
+| challenger_2 | teamwork_preview_challenger | APPROVE | challenger_2/handoff.md | Adversarial RBAC Stress-Testing (13 probes passed) |
+| auditor_1 | teamwork_preview_auditor | CLEAN | auditor_1/handoff.md | Forensic Integrity Audit (0 cheats, genuine math & RBAC) |
 
-Gate Result: **FAIL** (reviewer_m1_2 and challenger_m1_1 REQUEST_CHANGES)
-
-### Identified Remediations for Iteration 2:
-1. **Department Budget Matcher**: In `src/services/db.js` (`getDepartmentBudget`), fix HR department matching so `DEP-HR` matches users with `department: 'Human Resources'` and `department: 'Human Resources & Talent'`, while preventing false partial substring matches like `'Chrome Development'`.
-2. **Leave Approval Idempotency & Boundaries**:
-   - In `db.approveLeave`, add idempotency guard: if `leave.status === 'Approved'`, do not re-deduct balance.
-   - Fix 0-day deduction bug (replace `days || 1` with explicit check `typeof leave.days === 'number' ? Math.max(0, leave.days) : 1`).
-   - Sanitize negative days (`Math.max(0, leave.days)`).
-3. **Expense Claim 2-Stage Lifecycle Guard**:
-   - In `db.approveClaimFinance`, ensure claim is in `'Pending Finance'` before transitioning to `'Approved'` (or reject if not yet verified by lead).
-   - In `db.approveClaimLead`, ensure claim is in `'Pending Lead'`.
-4. **Org Tree Cycle Protection**:
-   - In `db.getOrgTree`, track visited user IDs (`visited = new Set()`) or max depth to prevent call stack exhaustion on circular `managerId` references.
-5. **ESLint Cleanup in Tests**:
-   - Clean up the 6 unused variables/assignments in `tests/tier1_features/` so `npm run lint` passes with 0 errors and 0 warnings.
+Gate Result: **PASS**

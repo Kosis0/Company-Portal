@@ -1,76 +1,90 @@
-# BRIEFING — 2026-08-31T15:57:30Z
+# BRIEFING — 2026-09-01T01:26:40+01:00
 
 ## Mission
-Perform comprehensive quality audit and end-to-end verification of the Monolith Enterprise Organization Operating System (ERP) across all 5 verification domains (V1: 5-Tier RBAC, V2: Multi-Stage Workflows, V3: Department Toolkits & Engines, V4: Interactive Org Chart, V5: Mobile Ergonomics, Theming & Build Health).
+Complete visual and front-end overhaul of the ERP application to precisely replicate the design, layouts, color system, and components from reference specifications while preserving RBAC (5 authority tiers) and live Supabase sync, with 0 lint/build errors.
 
 ## 🔒 My Identity
-- Archetype: orchestrator
+- Archetype: teamwork_preview_orchestrator
 - Roles: orchestrator, user_liaison, human_reporter, successor
 - Working directory: c:\Users\kosiu\Desktop\Work\ERP\.agents\orchestrator_1
-- Original parent: parent (f530bf35-344e-4d24-93fc-a6ed796182fa)
-- Original parent conversation ID: f530bf35-344e-4d24-93fc-a6ed796182fa
+- Original parent: parent
+- Original parent conversation ID: 1bacbf6a-d58c-4766-a139-b6f1fde5afcd
 
 ## 🔒 My Workflow
-- **Pattern**: Project Pattern (Quality Audit & E2E Verification)
+- **Pattern**: Project Pattern (Dual Track: Implementation Track + E2E Testing Track)
 - **Scope document**: c:\Users\kosiu\Desktop\Work\ERP\PROJECT.md
-1. **Decompose**: Partition audit scope across the 5 verification domains (V1-V5).
+1. **Decompose**: Survey full scope with 3 parallel Explorers/Spec Miners, create PROJECT.md (Architecture, Feature Inventory, Milestones, Interface Contracts, Code Layout).
 2. **Dispatch & Execute**:
-   - Step 1: Dispatch 3 parallel Explorers to investigate V1/V2, V3/V4, and V5 + Test/Lint/Build status. (Completed)
-   - Step 2: Synthesize findings and identify any remediation items. (Completed)
-   - Step 3: Dispatch Worker(s) to fix any identified defects and expand test coverage if needed. (Completed)
-   - Step 4: Dispatch Gate Verification team (2 Reviewers, 2 Challengers, 1 Forensic Auditor). (In Progress)
-   - Step 5: Full verification, report synthesis, and human handoff. (Pending)
-3. **On failure**: Retry -> Replace -> Skip -> Redistribute -> Redesign
-4. **Succession**: Spawn successor at 16 spawns
+   - **Direct / Sub-orchestrators**: Decompose milestones, spawn sub-orchestrators / specialists following Explorer -> Worker -> Reviewer -> Challenger -> Forensic Auditor cycle.
+   - **E2E Testing Track**: Spawn E2E Testing Track in parallel.
+3. **On failure** (in this order):
+   - Retry: nudge stuck agent or re-send task
+   - Replace: spawn fresh agent with partial progress
+   - Skip: proceed without (only if non-critical; auditor is NEVER skipped)
+   - Redistribute: split stuck agent's remaining work
+   - Redesign: re-partition decomposition
+   - Escalate: report to parent (sub-orchestrators only, last resort)
+4. **Succession**: Self-succeed when spawn count reaches 16.
 - **Work items**:
-  1. Exploratory Audit of V1 & V2 [completed]
-  2. Exploratory Audit of V3 & V4 [completed]
-  3. Exploratory Audit of V5 & Build Health [completed]
-  4. Remediation & Hardening [completed]
-  5. Gate Verification (Reviewers, Challengers, Auditor) [in-progress]
-  6. Final Synthesis & Report [pending]
-- **Current phase**: 4 (Gate Verification)
-- **Current focus**: Reviewers, Challengers, and Forensic Auditor performing final gate assessment
+  1. Survey & Architecture Mapping [done]
+  2. E2E Test Suite Creation [done]
+  3. Design System & Theme Foundation [done]
+  4. Core Overview & Operational Screens [done]
+  5. Interactive Data Visualizations & Timeline [done]
+  6. RBAC & Supabase Sync Validation [done]
+  7. Final Verification & Quality Gate [done]
+- **Current phase**: Complete / Victory Verification
+- **Current focus**: Final summary and human reporting
 
 ## 🔒 Key Constraints
-- DISPATCH-ONLY: NEVER write source code or execute build/test commands directly. Delegate everything to subagents.
-- Binary Forensic Audit Veto: Any integrity violation vetoes the milestone unconditionally.
-- Never reuse subagents after handoff.
-- Pass 100% E2E tests, clean lint (0 errors, 0 warnings), clean production build (0 errors).
+- NEVER write, modify, or create source code files directly.
+- NEVER run build/test commands directly — delegate to workers.
+- NEVER investigate at code level directly — dispatch Explorers.
+- Forensic Auditor is a non-skippable binary veto.
+- All implementations must be genuine — no cheating, dummy facade, or hardcoding.
+- Include path to ORIGINAL_REQUEST.md in every subagent dispatch.
+- Preserve 5 RBAC authority tiers and Supabase multi-device sync.
+- Zero lint errors/warnings and zero build errors.
 
 ## Current Parent
-- Conversation ID: f530bf35-344e-4d24-93fc-a6ed796182fa
-- Updated: 2026-08-31T15:57:30Z
+- Conversation ID: 1bacbf6a-d58c-4766-a139-b6f1fde5afcd
+- Updated: not yet
 
 ## Key Decisions Made
-- All remediation completed (0 lint errors, 100% tests pass). Dispatched 5 Gate Verification Agents (2 Reviewers, 2 Challengers, 1 Forensic Auditor).
+- All milestones M1–M4 and E2E Testing Track completed and passed with 100% test passing (184/184 tests across 44 suites), 0 ESLint errors/warnings, exit code 0 build, and CLEAN forensic audit.
 
 ## Team Roster
 | Agent | Type | Work Item | Status | Conv ID |
-|---|---|---|---|---|
-| explorer_audit_1 | teamwork_preview_explorer | V1 (5-Tier RBAC) & V2 (Workflows) Audit | completed | 6d7ec0a7-ba53-4271-b4ed-3f6b76e61a84 |
-| explorer_audit_2 | teamwork_preview_explorer | V3 (Dept Toolkits) & V4 (Org Chart) Audit | completed | f2c66c1f-36e6-4205-a817-71f554a630e3 |
-| explorer_audit_3 | teamwork_preview_explorer | V5 (Mobile/Theme) & Build/Test Health | completed | f393a374-e352-464d-88fc-a035f4011fc5 |
-| worker_remediation | teamwork_preview_worker | Edge Case Hardening & Lint Cleanup | completed | 62e29604-ebaf-4d72-8110-b122c2e2f6d5 |
-| reviewer_gate_1 | teamwork_preview_reviewer | Gate Review 1 | in-progress | 59466e1c-3517-47ef-a716-9f4a4f930bf6 |
-| reviewer_gate_2 | teamwork_preview_reviewer | Gate Review 2 | in-progress | f2aeaa0e-9391-4e98-a6b3-5fc6141facfe |
-| challenger_gate_1 | teamwork_preview_challenger | Adversarial Stress & Probing | in-progress | 8a47442b-a1da-4f55-b3e0-e42dd82a6bbb |
-| challenger_gate_2 | teamwork_preview_challenger | Fuzzing & Boundary Stress | in-progress | cb4c90d7-e853-4635-bde0-75acb553b299 |
-| auditor_gate_1 | teamwork_preview_auditor | Forensic Integrity Audit | in-progress | 228e6a65-c0a1-4e1b-a367-8012ff99dbac |
+|-------|------|-----------|--------|---------|
+| explorer_survey_1 | teamwork_preview_explorer | Design System & Theme Survey | completed | d50126bd-11cf-4576-9a7e-f3623e3fa789 |
+| explorer_survey_2 | teamwork_preview_explorer | Core Screens & Visualizations Survey | completed | 75550daf-4505-4732-bbb7-31a43fa895ec |
+| explorer_survey_3 | teamwork_preview_explorer | RBAC, Supabase & Build/Test Survey | completed | ab36c0d4-e4ba-4e7b-b4bc-4136175ffa88 |
+| worker_m1_m2 | teamwork_preview_worker | UI Tokens, Shell Layout, Dashboards & Charts | completed | c6a93d16-bc88-418f-beae-5ccba841bbc7 |
+| test_writer_e2e | teamwork_preview_test_writer | E2E 4-Tier Automated Test Suite | completed | 7e2bbfe8-51d9-4216-94a6-bcf1bb865c7e |
+| reviewer_1 | teamwork_preview_reviewer | UI, Components & Layout Review | completed (APPROVE) | 4fcab169-ceb1-494f-9d81-bb2e31fdb233 |
+| reviewer_2 | teamwork_preview_reviewer | RBAC, Data & Sync Review | completed (APPROVE) | 2bf20870-98fd-4354-ab24-57d08201fe1c |
+| challenger_1 | teamwork_preview_challenger | Adversarial Visualizations Stress-Testing | completed (APPROVE) | a638cb2e-0322-42e8-b1aa-fafdd487babb |
+| challenger_2 | teamwork_preview_challenger | Adversarial RBAC Stress-Testing | completed (APPROVE) | 25faded8-8e89-446c-bc3b-009767f0d68f |
+| auditor_1 | teamwork_preview_auditor | Forensic Integrity Audit | completed (CLEAN) | 92d79fd0-2009-474f-bbe0-d3ee6200e2e1 |
 
 ## Succession Status
 - Succession required: no
-- Spawn count: 9 / 16
-- Pending subagents: 59466e1c-3517-47ef-a716-9f4a4f930bf6, f2aeaa0e-9391-4e98-a6b3-5fc6141facfe, 8a47442b-a1da-4f55-b3e0-e42dd82a6bbb, cb4c90d7-e853-4635-bde0-75acb553b299, 228e6a65-c0a1-4e1b-a367-8012ff99dbac
+- Spawn count: 10 / 16
+- Pending subagents: none
 - Predecessor: none
-- Successor: not yet spawned
+- Successor: not needed (project complete)
 
 ## Active Timers
-- Heartbeat cron: task-49 (*/10 * * * *)
+- Heartbeat cron: 9d65b081-7009-4492-990e-43b2ef0f12b6/task-15
 - Safety timer: none
+- On succession: kill all timers before spawning successor
+- On context truncation: run manage_task(Action="list") — re-create if missing
 
 ## Artifact Index
-- c:\Users\kosiu\Desktop\Work\ERP\PROJECT.md — Global Project Specification & Feature Inventory
-- c:\Users\kosiu\Desktop\Work\ERP\.agents\orchestrator_1\GATE_STATUS.md — Milestone Gate Status
-
-
+- c:\Users\kosiu\Desktop\Work\ERP\ORIGINAL_REQUEST.md — Original User Request
+- c:\Users\kosiu\Desktop\Work\ERP\PROJECT.md — Master Project Specification
+- c:\Users\kosiu\Desktop\Work\ERP\TEST_INFRA.md — E2E Test Infrastructure Specification
+- c:\Users\kosiu\Desktop\Work\ERP\TEST_READY.md — E2E Test Suite Readiness Document
+- c:\Users\kosiu\Desktop\Work\ERP\.agents\orchestrator_1\BRIEFING.md — Persistent working memory
+- c:\Users\kosiu\Desktop\Work\ERP\.agents\orchestrator_1\progress.md — Liveness & status tracking
+- c:\Users\kosiu\Desktop\Work\ERP\.agents\orchestrator_1\GATE_STATUS.md — Quality gate tracking
