@@ -558,18 +558,20 @@ html, body {
   transform: scale(0.95);
 }
 
-/* Top Navbar Brand for Mobile */
-.top-navbar-brand {
+/* Top Navbar Brand Logo for Mobile */
+.top-navbar-brand-btn {
   display: none;
-  align-items: center;
-  gap: 8px;
+  background: transparent;
+  border: none;
+  padding: 0;
   cursor: pointer;
-  user-select: none;
+  outline: none;
+  align-items: center;
 }
 
 .top-navbar-logo {
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   border-radius: var(--radius-sm);
   background: linear-gradient(135deg, #3D644B 0%, #2D4A37 100%);
   color: #FFFFFF;
@@ -577,18 +579,15 @@ html, body {
   align-items: center;
   justify-content: center;
   font-weight: 800;
-  font-size: 13.5px;
+  font-size: 14px;
   letter-spacing: -0.4px;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
   flex-shrink: 0;
+  transition: transform 0.12s ease;
 }
 
-.top-navbar-brand-name {
-  font-size: 14px;
-  font-weight: 800;
-  letter-spacing: -0.3px;
-  color: var(--text-primary);
-  line-height: 1;
+.top-navbar-brand-btn:active .top-navbar-logo {
+  transform: scale(0.95);
 }
 
 .top-navbar-breadcrumb {
@@ -1663,7 +1662,7 @@ html, body {
     height: 56px;
   }
 
-  .top-navbar-brand {
+  .top-navbar-brand-btn {
     display: flex;
   }
 
@@ -1830,7 +1829,7 @@ html, body {
     gap: 8px;
   }
 
-  .top-navbar-brand {
+  .top-navbar-brand-btn {
     display: flex;
   }
 

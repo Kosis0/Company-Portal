@@ -26,16 +26,15 @@ export default function TopNavbar({
     <header className="top-navbar">
       <div className="top-navbar-left">
         {/* Company Brand Logo for Mobile */}
-        <div
-          className="top-navbar-brand"
+        <button
+          type="button"
+          className="top-navbar-brand-btn"
           onClick={() => setActiveNav("overview")}
           title="Monolith ERP - Go to Overview"
-          role="button"
-          tabIndex={0}
+          aria-label="Monolith ERP - Go to Overview"
         >
-          <div className="top-navbar-logo">M</div>
-          <span className="top-navbar-brand-name">MONOLITH</span>
-        </div>
+          <span className="top-navbar-logo">M</span>
+        </button>
 
         {/* Desktop Breadcrumb Hierarchy */}
         <div className="top-navbar-breadcrumb">
