@@ -374,3 +374,4 @@ runTest("db.subscribeToChanges returns unsubscribe function safely", () => {
 console.log("=================================================");
 console.log(`🎉 ALL ${passedTests}/${totalTests} TESTS PASSED CLEANLY!`);
 console.log("=================================================");
+process.exit(0);

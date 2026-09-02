@@ -166,6 +166,60 @@ CREATE TABLE IF NOT EXISTS public.announcements (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- 10. INVOICES TABLE (Financial Receivables & Settlement)
+CREATE TABLE IF NOT EXISTS public.invoices (
+  id TEXT PRIMARY KEY, -- e.g. 'INV-2026-089'
+  customer TEXT NOT NULL,
+  email TEXT NOT NULL,
+  issue_date TEXT NOT NULL,
+  due_date TEXT NOT NULL,
+  amount TEXT NOT NULL,
+  amount_num NUMERIC DEFAULT 0,
+  days_overdue INT DEFAULT 0,
+  status TEXT DEFAULT 'Pending', -- 'Pending' | 'Due Soon' | 'Overdue' | 'Paid'
+  settled_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 11. INVENTORY TABLE (Hardware Components & Stock Alerts)
+CREATE TABLE IF NOT EXISTS public.inventory (
+  sku TEXT PRIMARY KEY, -- e.g. 'SKU-9901'
+  name TEXT NOT NULL,
+  category TEXT NOT NULL,
+  current_stock INT NOT NULL DEFAULT 0,
+  min_threshold INT NOT NULL DEFAULT 10,
+  supplier TEXT NOT NULL,
+  unit_cost TEXT NOT NULL,
+  unit_cost_num NUMERIC DEFAULT 0,
+  status TEXT DEFAULT 'Adequate', -- 'Adequate' | 'Low Stock' | 'Critical'
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 12. PURCHASE ORDERS TABLE (Procurement Orders)
+CREATE TABLE IF NOT EXISTS public.purchase_orders (
+  id TEXT PRIMARY KEY, -- e.g. 'PO-9901'
+  sku TEXT REFERENCES public.inventory(sku) ON DELETE SET NULL,
+  item_name TEXT NOT NULL,
+  supplier TEXT NOT NULL,
+  quantity INT NOT NULL DEFAULT 1,
+  unit_cost TEXT NOT NULL,
+  status TEXT DEFAULT 'Created', -- 'Created' | 'Approved & Sent' | 'Fulfilled'
+  authorized_by TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 13. SHIPMENTS TABLE (Supply Chain Logistics)
+CREATE TABLE IF NOT EXISTS public.shipments (
+  id TEXT PRIMARY KEY, -- e.g. 'SHP-8801'
+  origin TEXT NOT NULL,
+  destination TEXT NOT NULL,
+  carrier TEXT NOT NULL,
+  status TEXT DEFAULT 'In Transit', -- 'In Transit' | 'Customs Clearance' | 'Dispatched' | 'Delivered'
+  date TEXT NOT NULL,
+  progress INT DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 -- =========================================================================
 -- INDEXES FOR HIGH PERFORMANCE QUERYING
 -- =========================================================================
@@ -229,6 +283,22 @@ BEGIN
   END;
   BEGIN
     ALTER PUBLICATION supabase_realtime ADD TABLE public.announcements;
+  EXCEPTION WHEN duplicate_object THEN NULL;
+  END;
+  BEGIN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.invoices;
+  EXCEPTION WHEN duplicate_object THEN NULL;
+  END;
+  BEGIN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.inventory;
+  EXCEPTION WHEN duplicate_object THEN NULL;
+  END;
+  BEGIN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.purchase_orders;
+  EXCEPTION WHEN duplicate_object THEN NULL;
+  END;
+  BEGIN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.shipments;
   EXCEPTION WHEN duplicate_object THEN NULL;
   END;
 END $$;
@@ -358,3 +428,158 @@ VALUES
   ('ANN-501', 'Q3 Strategic Townhall & Multi-Tiered Organization Expansion', 'All hands mandatory virtual townhall to review H1 milestones, new department leadership tiers, and international health coverage expansion.', 'Important', 'Dr. Alexander Vance (CEO)', 'Aug 31, 2026'),
   ('ANN-502', 'Expanded HMO Hospital Network Coverage in Port Harcourt & Lagos', 'Axa Mansard has certified new tier-1 specialist clinics and trauma facilities across Port Harcourt and Lagos.', 'General', 'Victoria Sterling (VP HR)', 'Aug 20, 2026')
 ON CONFLICT (id) DO NOTHING;
+
+-- =========================================================================
+-- SEED DATA: INVOICES
+-- =========================================================================
+INSERT INTO public.invoices (id, customer, email, issue_date, due_date, amount, amount_num, days_overdue, status)
+VALUES
+  ('INV-2026-089', 'Apex Technologies Inc.', 'ap@apextech.io', '2026-08-01', '2026-08-15', '$345,000.00', 345000, 17, 'Overdue'),
+  ('INV-2026-092', 'Horizon Global Logistics Ltd', 'billing@horizonlog.com', '2026-08-05', '2026-08-20', '$180,000.00', 180000, 12, 'Overdue'),
+  ('INV-2026-095', 'Vertex Nordic Semiconductor', 'finance@vertexnordic.se', '2026-08-10', '2026-08-25', '$95,000.00', 95000, 7, 'Overdue'),
+  ('INV-2026-098', 'Sterling Energy Corp', 'accounts@sterlingcorp.com', '2026-08-20', '2026-09-05', '$420,000.00', 420000, 0, 'Due Soon'),
+  ('INV-2026-101', 'Solaria Power Systems', 'payables@solaria.eu', '2026-08-25', '2026-09-10', '$200,000.00', 200000, 0, 'Pending')
+ON CONFLICT (id) DO NOTHING;
+
+-- =========================================================================
+-- SEED DATA: INVENTORY
+-- =========================================================================
+INSERT INTO public.inventory (sku, name, category, current_stock, min_threshold, supplier, unit_cost, unit_cost_num, status)
+VALUES
+  ('SKU-9901', 'Apex Sensor Modules', 'Hardware Components', 14, 50, 'Apex Silicon Dist.', '$45.00', 45, 'Critical'),
+  ('SKU-9904', 'High-Density Optical Transceivers', 'Network Equipment', 8, 30, 'Global Logistics', '$120.00', 120, 'Critical'),
+  ('SKU-9908', 'Monolith Micro-Controllers v2', 'Microchips', 22, 60, 'Monolith Raw Mat.', '$18.50', 18.5, 'Low Stock'),
+  ('SKU-9912', 'Enterprise NVMe SSD 2TB', 'Storage Hardware', 19, 40, 'Supplier ABC', '$85.00', 85, 'Low Stock')
+ON CONFLICT (sku) DO NOTHING;
+
+-- =========================================================================
+-- SEED DATA: SHIPMENTS
+-- =========================================================================
+INSERT INTO public.shipments (id, origin, destination, carrier, status, date, progress)
+VALUES
+  ('SHP-8801', 'Shenzhen Port (SZX)', 'Lagos Hub (LOS)', 'Maersk Global Line', 'In Transit', 'Aug 29, 2026', 68),
+  ('SHP-8804', 'Rotterdam Europort (RTM)', 'Port Harcourt Terminal', 'Hapag-Lloyd Ocean', 'Customs Clearance', 'Sept 02, 2026', 85),
+  ('SHP-8809', 'Singapore Changi (SIN)', 'Lagos Air Cargo', 'DHL Global Forwarding', 'Dispatched', 'Sept 04, 2026', 35)
+ON CONFLICT (id) DO NOTHING;
+
+-- =========================================================================
+-- ROW LEVEL SECURITY (RLS) POLICIES
+-- =========================================================================
+ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.departments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.assets ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.sprints ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.attendance ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.leaves ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.claims ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.tickets ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.announcements ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.invoices ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.inventory ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.purchase_orders ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.shipments ENABLE ROW LEVEL SECURITY;
+
+DO $$
+BEGIN
+  -- Users
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow authenticated read users' AND tablename = 'users') THEN
+    CREATE POLICY "Allow authenticated read users" ON public.users FOR SELECT USING (true);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow insert users' AND tablename = 'users') THEN
+    CREATE POLICY "Allow insert users" ON public.users FOR INSERT WITH CHECK (true);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow update users' AND tablename = 'users') THEN
+    CREATE POLICY "Allow update users" ON public.users FOR UPDATE USING (true);
+  END IF;
+
+  -- Departments
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow authenticated read departments' AND tablename = 'departments') THEN
+    CREATE POLICY "Allow authenticated read departments" ON public.departments FOR SELECT USING (true);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow insert departments' AND tablename = 'departments') THEN
+    CREATE POLICY "Allow insert departments" ON public.departments FOR INSERT WITH CHECK (true);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow update departments' AND tablename = 'departments') THEN
+    CREATE POLICY "Allow update departments" ON public.departments FOR UPDATE USING (true);
+  END IF;
+
+  -- Leaves
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow authenticated read leaves' AND tablename = 'leaves') THEN
+    CREATE POLICY "Allow authenticated read leaves" ON public.leaves FOR SELECT USING (true);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow authenticated insert leaves' AND tablename = 'leaves') THEN
+    CREATE POLICY "Allow authenticated insert leaves" ON public.leaves FOR INSERT WITH CHECK (true);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow authenticated update leaves' AND tablename = 'leaves') THEN
+    CREATE POLICY "Allow authenticated update leaves" ON public.leaves FOR UPDATE USING (true);
+  END IF;
+
+  -- Invoices
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow public read invoices' AND tablename = 'invoices') THEN
+    CREATE POLICY "Allow public read invoices" ON public.invoices FOR SELECT USING (true);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow public update invoices' AND tablename = 'invoices') THEN
+    CREATE POLICY "Allow public update invoices" ON public.invoices FOR UPDATE USING (true);
+  END IF;
+
+  -- Inventory
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow public read inventory' AND tablename = 'inventory') THEN
+    CREATE POLICY "Allow public read inventory" ON public.inventory FOR SELECT USING (true);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow update inventory' AND tablename = 'inventory') THEN
+    CREATE POLICY "Allow update inventory" ON public.inventory FOR UPDATE USING (true);
+  END IF;
+
+  -- Purchase Orders
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow public read purchase_orders' AND tablename = 'purchase_orders') THEN
+    CREATE POLICY "Allow public read purchase_orders" ON public.purchase_orders FOR SELECT USING (true);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow insert purchase_orders' AND tablename = 'purchase_orders') THEN
+    CREATE POLICY "Allow insert purchase_orders" ON public.purchase_orders FOR INSERT WITH CHECK (true);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow update purchase_orders' AND tablename = 'purchase_orders') THEN
+    CREATE POLICY "Allow update purchase_orders" ON public.purchase_orders FOR UPDATE USING (true);
+  END IF;
+
+  -- Shipments
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow public read shipments' AND tablename = 'shipments') THEN
+    CREATE POLICY "Allow public read shipments" ON public.shipments FOR SELECT USING (true);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow insert shipments' AND tablename = 'shipments') THEN
+    CREATE POLICY "Allow insert shipments" ON public.shipments FOR INSERT WITH CHECK (true);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow update shipments' AND tablename = 'shipments') THEN
+    CREATE POLICY "Allow update shipments" ON public.shipments FOR UPDATE TO public USING (true);
+  END IF;
+
+  -- Announcements
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow all on announcements' AND tablename = 'announcements') THEN
+    CREATE POLICY "Allow all on announcements" ON public.announcements FOR ALL TO public USING (true) WITH CHECK (true);
+  END IF;
+
+  -- Assets
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow all on assets' AND tablename = 'assets') THEN
+    CREATE POLICY "Allow all on assets" ON public.assets FOR ALL TO public USING (true) WITH CHECK (true);
+  END IF;
+
+  -- Attendance
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow all on attendance' AND tablename = 'attendance') THEN
+    CREATE POLICY "Allow all on attendance" ON public.attendance FOR ALL TO public USING (true) WITH CHECK (true);
+  END IF;
+
+  -- Claims
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow all on claims' AND tablename = 'claims') THEN
+    CREATE POLICY "Allow all on claims" ON public.claims FOR ALL TO public USING (true) WITH CHECK (true);
+  END IF;
+
+  -- Sprints
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow all on sprints' AND tablename = 'sprints') THEN
+    CREATE POLICY "Allow all on sprints" ON public.sprints FOR ALL TO public USING (true) WITH CHECK (true);
+  END IF;
+
+  -- Tickets
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow all on tickets' AND tablename = 'tickets') THEN
+    CREATE POLICY "Allow all on tickets" ON public.tickets FOR ALL TO public USING (true) WITH CHECK (true);
+  END IF;
+END $$;
+

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import EnterpriseShell from "./components/EnterpriseShell";
 import Login from "./components/Login";
+import ErrorBoundary from "./components/ErrorBoundary";
 import { auth } from "./services/auth";
 import { db } from "./services/db";
 import { CheckCircle2, AlertCircle, Info } from "lucide-react";
@@ -66,6 +67,13 @@ export default function App() {
   }, [theme]);
 
   useEffect(() => {
+    // Asynchronously pull remote records into local cache and refresh UI
+    db.hydrateFromSupabase().then(() => {
+      refreshDatabase();
+    }).catch((err) => {
+      console.warn("Supabase hydration skipped:", err?.message || err);
+    });
+
     const unsubscribe = db.subscribeToChanges(() => {
       refreshDatabase();
     });
@@ -229,54 +237,60 @@ export default function App() {
   };
 
   if (!currentUser) {
-    return <Login onLogin={handleLogin} onRegister={handleRegister} />;
+    return (
+      <ErrorBoundary>
+        <Login onLogin={handleLogin} onRegister={handleRegister} />
+      </ErrorBoundary>
+    );
   }
 
   return (
-    <div>
-      {/* Toast Notification Popups */}
-      <div className="toast-container">
-        {toasts.map((t) => (
-          <div key={t.id} className={`toast toast-${t.type}`}>
-            {t.type === "success" && <CheckCircle2 className="toast-icon" />}
-            {t.type === "error" && <AlertCircle className="toast-icon" />}
-            {t.type === "info" && <Info className="toast-icon" />}
-            <div className="toast-content">
-              <h4>{t.title}</h4>
-              <p>{t.message}</p>
+    <ErrorBoundary>
+      <div>
+        {/* Toast Notification Popups */}
+        <div className="toast-container">
+          {toasts.map((t) => (
+            <div key={t.id} className={`toast toast-${t.type}`}>
+              {t.type === "success" && <CheckCircle2 className="toast-icon" />}
+              {t.type === "error" && <AlertCircle className="toast-icon" />}
+              {t.type === "info" && <Info className="toast-icon" />}
+              <div className="toast-content">
+                <h4>{t.title}</h4>
+                <p>{t.message}</p>
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
 
-      {/* Unified Adaptive Enterprise Shell */}
-      <EnterpriseShell
-        currentUser={currentUser}
-        theme={theme}
-        onToggleTheme={toggleTheme}
-        onLogout={handleLogout}
-        onUpdateProfile={handleUpdateProfile}
-        leaveRequests={leaveRequests}
-        onSubmitLeave={handleAddLeave}
-        onUpdateLeaveStatus={handleUpdateLeaveStatus}
-        claims={claims}
-        onSubmitClaim={handleAddClaim}
-        onUpdateClaimStatus={handleUpdateClaimStatus}
-        attendanceRecords={attendanceRecords}
-        attendanceStatus={attendanceStatus}
-        onClockToggle={handleClockToggle}
-        tickets={tickets}
-        onAddTicket={handleAddTicket}
-        onUpdateTicketStatus={handleUpdateTicketStatus}
-        announcements={announcements}
-        onAddAnnouncement={handleAddAnnouncement}
-        departments={departments}
-        assets={assets}
-        sprints={sprints}
-        allUsers={allEmployees}
-        onAddAsset={handleAddAsset}
-        orgTree={orgTree}
-      />
-    </div>
+        {/* Unified Adaptive Enterprise Shell */}
+        <EnterpriseShell
+          currentUser={currentUser}
+          theme={theme}
+          onToggleTheme={toggleTheme}
+          onLogout={handleLogout}
+          onUpdateProfile={handleUpdateProfile}
+          leaveRequests={leaveRequests}
+          onSubmitLeave={handleAddLeave}
+          onUpdateLeaveStatus={handleUpdateLeaveStatus}
+          claims={claims}
+          onSubmitClaim={handleAddClaim}
+          onUpdateClaimStatus={handleUpdateClaimStatus}
+          attendanceRecords={attendanceRecords}
+          attendanceStatus={attendanceStatus}
+          onClockToggle={handleClockToggle}
+          tickets={tickets}
+          onAddTicket={handleAddTicket}
+          onUpdateTicketStatus={handleUpdateTicketStatus}
+          announcements={announcements}
+          onAddAnnouncement={handleAddAnnouncement}
+          departments={departments}
+          assets={assets}
+          sprints={sprints}
+          allUsers={allEmployees}
+          onAddAsset={handleAddAsset}
+          orgTree={orgTree}
+        />
+      </div>
+    </ErrorBoundary>
   );
 }

@@ -25,11 +25,12 @@ export function RevenueExpensesTrendChart({
   const chartW = width - padLeft - padRight;
   const chartH = height - padTop - padBottom;
 
-  const maxVal = 16;
+  const maxVal = Math.max(16, ...data.map((d) => Math.max(d.revenue || 0, d.expenses || 0)));
   const minVal = 0;
 
-  const getX = (index) => padLeft + (index / (data.length - 1)) * chartW;
-  const getY = (val) => padTop + chartH - ((val - minVal) / (maxVal - minVal)) * chartH;
+  const getX = (index) =>
+    data.length <= 1 ? padLeft + chartW / 2 : padLeft + (index / (data.length - 1)) * chartW;
+  const getY = (val) => padTop + chartH - ((val - minVal) / (maxVal - minVal || 1)) * chartH;
 
   // Create smooth bezier curves
   const createCurvedPath = (points) => {

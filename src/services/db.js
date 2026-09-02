@@ -17,6 +17,10 @@ export const STORAGE_KEYS = {
   ANNOUNCEMENTS: "monolith_db_announcements",
   SPRINTS: "monolith_db_sprints",
   PAYROLL: "monolith_db_payroll_batches",
+  INVOICES: "monolith_db_invoices",
+  INVENTORY: "monolith_db_inventory",
+  PURCHASE_ORDERS: "monolith_db_purchase_orders",
+  SHIPMENTS: "monolith_db_shipments",
 };
 
 // Comprehensive 5-Tier Enterprise Seed Data (10 Users across Tiers 1-5 & Departments)
@@ -617,6 +621,148 @@ export const SEED_DATA = {
   ],
 
   payrollBatches: [],
+
+  invoices: [
+    {
+      id: "INV-2026-089",
+      customer: "Apex Technologies Inc.",
+      email: "ap@apextech.io",
+      issueDate: "2026-08-01",
+      dueDate: "2026-08-15",
+      amount: "$345,000.00",
+      amountNum: 345000,
+      daysOverdue: 17,
+      status: "Overdue",
+      createdAt: "2026-08-01T08:00:00.000Z",
+    },
+    {
+      id: "INV-2026-092",
+      customer: "Horizon Global Logistics Ltd",
+      email: "billing@horizonlog.com",
+      issueDate: "2026-08-05",
+      dueDate: "2026-08-20",
+      amount: "$180,000.00",
+      amountNum: 180000,
+      daysOverdue: 12,
+      status: "Overdue",
+      createdAt: "2026-08-05T08:00:00.000Z",
+    },
+    {
+      id: "INV-2026-095",
+      customer: "Vertex Nordic Semiconductor",
+      email: "finance@vertexnordic.se",
+      issueDate: "2026-08-10",
+      dueDate: "2026-08-25",
+      amount: "$95,000.00",
+      amountNum: 95000,
+      daysOverdue: 7,
+      status: "Overdue",
+      createdAt: "2026-08-10T08:00:00.000Z",
+    },
+    {
+      id: "INV-2026-098",
+      customer: "Sterling Energy Corp",
+      email: "accounts@sterlingcorp.com",
+      issueDate: "2026-08-20",
+      dueDate: "2026-09-05",
+      amount: "$420,000.00",
+      amountNum: 420000,
+      daysOverdue: 0,
+      status: "Due Soon",
+      createdAt: "2026-08-20T08:00:00.000Z",
+    },
+    {
+      id: "INV-2026-101",
+      customer: "Solaria Power Systems",
+      email: "payables@solaria.eu",
+      issueDate: "2026-08-25",
+      dueDate: "2026-09-10",
+      amount: "$200,000.00",
+      amountNum: 200000,
+      daysOverdue: 0,
+      status: "Pending",
+      createdAt: "2026-08-25T08:00:00.000Z",
+    },
+  ],
+
+  inventory: [
+    {
+      sku: "SKU-9901",
+      name: "Apex Sensor Modules",
+      category: "Hardware Components",
+      currentStock: 14,
+      minThreshold: 50,
+      supplier: "Apex Silicon Dist.",
+      unitCost: "$45.00",
+      unitCostNum: 45,
+      status: "Critical",
+    },
+    {
+      sku: "SKU-9904",
+      name: "High-Density Optical Transceivers",
+      category: "Network Equipment",
+      currentStock: 8,
+      minThreshold: 30,
+      supplier: "Global Logistics",
+      unitCost: "$120.00",
+      unitCostNum: 120,
+      status: "Critical",
+    },
+    {
+      sku: "SKU-9908",
+      name: "Monolith Micro-Controllers v2",
+      category: "Microchips",
+      currentStock: 22,
+      minThreshold: 60,
+      supplier: "Monolith Raw Mat.",
+      unitCost: "$18.50",
+      unitCostNum: 18.5,
+      status: "Low Stock",
+    },
+    {
+      sku: "SKU-9912",
+      name: "Enterprise NVMe SSD 2TB",
+      category: "Storage Hardware",
+      currentStock: 19,
+      minThreshold: 40,
+      supplier: "Supplier ABC",
+      unitCost: "$85.00",
+      unitCostNum: 85,
+      status: "Low Stock",
+    },
+  ],
+
+  shipments: [
+    {
+      id: "SHP-8801",
+      origin: "Shenzhen Port (SZX)",
+      destination: "Lagos Hub (LOS)",
+      carrier: "Maersk Global Line",
+      status: "In Transit",
+      date: "Aug 29, 2026",
+      progress: 68,
+    },
+    {
+      id: "SHP-8804",
+      origin: "Rotterdam Europort (RTM)",
+      destination: "Port Harcourt Terminal",
+      carrier: "Hapag-Lloyd Ocean",
+      status: "Customs Clearance",
+      date: "Sept 02, 2026",
+      progress: 85,
+    },
+    {
+      id: "SHP-8809",
+      origin: "Singapore Changi (SIN)",
+      destination: "Lagos Air Cargo",
+      carrier: "DHL Global Forwarding",
+      status: "Dispatched",
+      date: "Sept 04, 2026",
+      progress: 35,
+    },
+  ],
+
+  purchaseOrders: [],
 };
 
 // Safe LocalStorage Retrieval & Persistence
@@ -653,7 +799,7 @@ function parseSalaryNumeric(salaryStr, fallback = 3500) {
 
 export const db = {
   // =========================================================================
-  // REALTIME SUPABASE WEBSOCKET SUBSCRIPTION
+  // REALTIME SUPABASE WEBSOCKET SUBSCRIPTION WITH DIFFERENTIAL PATCHING
   // =========================================================================
   subscribeToChanges(onUpdateCallback) {
     if (!isSupabaseConfigured || !supabase) return () => {};
@@ -661,8 +807,11 @@ export const db = {
     try {
       const channel = supabase
         .channel("monolith-enterprise-sync")
-        .on("postgres_changes", { event: "*", schema: "public" }, () => {
-          if (onUpdateCallback) onUpdateCallback();
+        .on("postgres_changes", { event: "*", schema: "public" }, (payload) => {
+          if (payload && payload.table) {
+            this.applyRemoteChange(payload.table, payload.eventType, payload.new, payload.old);
+          }
+          if (onUpdateCallback) onUpdateCallback(payload);
         })
         .subscribe((status) => {
           if (status === "SUBSCRIBED") {
@@ -683,6 +832,91 @@ export const db = {
     }
   },
 
+  applyRemoteChange(table, eventType, newRecord, oldRecord) {
+    const tableKeyMap = {
+      users: STORAGE_KEYS.USERS,
+      departments: STORAGE_KEYS.DEPARTMENTS,
+      assets: STORAGE_KEYS.ASSETS,
+      sprints: STORAGE_KEYS.SPRINTS,
+      attendance: STORAGE_KEYS.ATTENDANCE,
+      leaves: STORAGE_KEYS.LEAVES,
+      claims: STORAGE_KEYS.CLAIMS,
+      tickets: STORAGE_KEYS.TICKETS,
+      announcements: STORAGE_KEYS.ANNOUNCEMENTS,
+      invoices: STORAGE_KEYS.INVOICES,
+      inventory: STORAGE_KEYS.INVENTORY,
+      purchase_orders: STORAGE_KEYS.PURCHASE_ORDERS,
+      shipments: STORAGE_KEYS.SHIPMENTS,
+    };
+
+    const storageKey = tableKeyMap[table];
+    if (!storageKey) return;
+
+    try {
+      const currentList = getLocal(storageKey, []);
+      let updatedList = [...currentList];
+
+      if (eventType === "INSERT" && newRecord) {
+        if (!updatedList.some((item) => item.id === newRecord.id)) {
+          updatedList.push(newRecord);
+        }
+      } else if (eventType === "UPDATE" && newRecord) {
+        updatedList = updatedList.map((item) =>
+          (item.id === newRecord.id || (item.sku && item.sku === newRecord.sku))
+            ? { ...item, ...newRecord }
+            : item
+        );
+      } else if (eventType === "DELETE" && oldRecord) {
+        updatedList = updatedList.filter((item) =>
+          item.id !== oldRecord.id && (!item.sku || item.sku !== oldRecord.sku)
+        );
+      }
+
+      saveLocal(storageKey, updatedList);
+    } catch (err) {
+      console.warn(`Failed to apply remote change for ${table}:`, err);
+    }
+  },
+
+  async hydrateFromSupabase() {
+    if (!isSupabaseConfigured || !supabase) return false;
+
+    const tablesToHydrate = [
+      { table: "users", key: STORAGE_KEYS.USERS },
+      { table: "departments", key: STORAGE_KEYS.DEPARTMENTS },
+      { table: "assets", key: STORAGE_KEYS.ASSETS },
+      { table: "sprints", key: STORAGE_KEYS.SPRINTS },
+      { table: "attendance", key: STORAGE_KEYS.ATTENDANCE },
+      { table: "leaves", key: STORAGE_KEYS.LEAVES },
+      { table: "claims", key: STORAGE_KEYS.CLAIMS },
+      { table: "tickets", key: STORAGE_KEYS.TICKETS },
+      { table: "announcements", key: STORAGE_KEYS.ANNOUNCEMENTS },
+      { table: "invoices", key: STORAGE_KEYS.INVOICES },
+      { table: "inventory", key: STORAGE_KEYS.INVENTORY },
+      { table: "purchase_orders", key: STORAGE_KEYS.PURCHASE_ORDERS },
+      { table: "shipments", key: STORAGE_KEYS.SHIPMENTS },
+    ];
+
+    try {
+      let anyLoaded = false;
+      for (const { table, key } of tablesToHydrate) {
+        try {
+          const { data, error } = await supabase.from(table).select("*");
+          if (!error && data && data.length > 0) {
+            saveLocal(key, data);
+            anyLoaded = true;
+          }
+        } catch {
+          // Ignore individual table errors
+        }
+      }
+      return anyLoaded;
+    } catch (err) {
+      console.warn("Supabase hydration skipped:", err);
+      return false;
+    }
+  },
+
   // =========================================================================
   // RESET / RE-SEED DATABASE HELPER
   // =========================================================================
@@ -697,6 +931,10 @@ export const db = {
     saveLocal(STORAGE_KEYS.TICKETS, SEED_DATA.tickets);
     saveLocal(STORAGE_KEYS.ANNOUNCEMENTS, SEED_DATA.announcements);
     saveLocal(STORAGE_KEYS.PAYROLL, SEED_DATA.payrollBatches);
+    saveLocal(STORAGE_KEYS.INVOICES, SEED_DATA.invoices);
+    saveLocal(STORAGE_KEYS.INVENTORY, SEED_DATA.inventory);
+    saveLocal(STORAGE_KEYS.PURCHASE_ORDERS, SEED_DATA.purchaseOrders);
+    saveLocal(STORAGE_KEYS.SHIPMENTS, SEED_DATA.shipments);
   },
 
   // =========================================================================
@@ -1828,5 +2066,112 @@ export const db = {
 
   getPayrollBatches() {
     return getLocal(STORAGE_KEYS.PAYROLL, []);
+  },
+
+  // =========================================================================
+  // 10. INVOICES & RECEIVABLES
+  // =========================================================================
+  getInvoices() {
+    return getLocal(STORAGE_KEYS.INVOICES, SEED_DATA.invoices);
+  },
+
+  getInvoiceById(id) {
+    const invoices = this.getInvoices();
+    return invoices.find((inv) => inv.id === id) || null;
+  },
+
+  async markInvoicePaid(id) {
+    const invoices = this.getInvoices();
+    const target = invoices.find((i) => i.id === id);
+    if (!target) return null;
+
+    const updated = {
+      ...target,
+      status: "Paid",
+      daysOverdue: 0,
+      settledAt: new Date().toISOString(),
+    };
+    const nextList = invoices.map((inv) => (inv.id === id ? updated : inv));
+    saveLocal(STORAGE_KEYS.INVOICES, nextList);
+
+    if (isSupabaseConfigured && supabase) {
+      try {
+        await supabase
+          .from("invoices")
+          .update({ status: "Paid", days_overdue: 0 })
+          .eq("id", id);
+      } catch (err) {
+        console.warn("Supabase invoice update failed, cached locally:", err);
+      }
+    }
+    return updated;
+  },
+
+  // =========================================================================
+  // 11. INVENTORY, STOCK ALERTS & PURCHASE ORDERS
+  // =========================================================================
+  getInventory() {
+    return getLocal(STORAGE_KEYS.INVENTORY, SEED_DATA.inventory);
+  },
+
+  getStockAlerts() {
+    const items = this.getInventory();
+    return items.filter((item) => item.currentStock <= item.minThreshold);
+  },
+
+  async createPurchaseOrder(item, authorizedBy = "System") {
+    const inventory = this.getInventory();
+    const poNumber = `PO-${item.sku.replace(/\D/g, "") || Date.now().toString().slice(-4)}`;
+    const reorderQty = Math.max(20, (item.minThreshold || 30) - (item.currentStock || 0) + 20);
+
+    // Update stock item
+    const updatedInventory = inventory.map((alertItem) =>
+      alertItem.sku === item.sku
+        ? {
+            ...alertItem,
+            currentStock: alertItem.minThreshold + 20,
+            status: "Adequate",
+          }
+        : alertItem
+    );
+    saveLocal(STORAGE_KEYS.INVENTORY, updatedInventory);
+
+    // Store PO record
+    const purchaseOrders = getLocal(STORAGE_KEYS.PURCHASE_ORDERS, []);
+    const newPO = {
+      id: poNumber,
+      sku: item.sku,
+      itemName: item.name,
+      supplier: item.supplier,
+      quantity: reorderQty,
+      unitCost: item.unitCost,
+      status: "Created",
+      authorizedBy,
+      createdAt: new Date().toISOString(),
+    };
+    purchaseOrders.unshift(newPO);
+    saveLocal(STORAGE_KEYS.PURCHASE_ORDERS, purchaseOrders);
+
+    if (isSupabaseConfigured && supabase) {
+      try {
+        await supabase.from("inventory").update({
+          current_stock: item.minThreshold + 20,
+          status: "Adequate",
+        }).eq("sku", item.sku);
+        await supabase.from("purchase_orders").insert([newPO]);
+      } catch (err) {
+        console.warn("Supabase PO sync failed, cached locally:", err);
+      }
+    }
+
+    return { poNumber, order: newPO };
+  },
+
+  getPurchaseOrders() {
+    return getLocal(STORAGE_KEYS.PURCHASE_ORDERS, SEED_DATA.purchaseOrders);
+  },
+
+  getShipments() {
+    return getLocal(STORAGE_KEYS.SHIPMENTS, SEED_DATA.shipments);
   },
 };
