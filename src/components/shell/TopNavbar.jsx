@@ -11,15 +11,12 @@ export default function TopNavbar({
   currentUser,
   activeNav,
   setActiveNav,
-  mobileMenuOpen,
-  setMobileMenuOpen,
   globalSearch,
   setGlobalSearch,
   theme,
   onToggleTheme,
   attendanceStatus,
   elapsedSeconds,
-  onClockToggle,
   onLogout,
   showToast,
   formatTimer,
@@ -28,12 +25,25 @@ export default function TopNavbar({
   return (
     <header className="top-navbar">
       <div className="top-navbar-left">
+        {/* Company Brand Logo for Mobile */}
+        <div
+          className="top-navbar-brand"
+          onClick={() => setActiveNav("overview")}
+          title="Monolith ERP - Go to Overview"
+          role="button"
+          tabIndex={0}
+        >
+          <div className="top-navbar-logo">M</div>
+          <span className="top-navbar-brand-name">MONOLITH</span>
+        </div>
+
+        {/* Desktop Breadcrumb Hierarchy */}
         <div className="top-navbar-breadcrumb">
           <span className="top-navbar-breadcrumb-dept">{currentUser.department}</span>
           <span className="top-navbar-breadcrumb-sep">/</span>
           <span className="current">
             {activeNav === "dashboard" || activeNav === "overview"
-              ? "ORGANIZATION OVERVIEW"
+              ? "OVERVIEW"
               : activeNav.replace("_", " ").toUpperCase()}
           </span>
         </div>

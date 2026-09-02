@@ -558,6 +558,39 @@ html, body {
   transform: scale(0.95);
 }
 
+/* Top Navbar Brand for Mobile */
+.top-navbar-brand {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.top-navbar-logo {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(135deg, #3D644B 0%, #2D4A37 100%);
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 13.5px;
+  letter-spacing: -0.4px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+  flex-shrink: 0;
+}
+
+.top-navbar-brand-name {
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
 .top-navbar-breadcrumb {
   display: flex;
   align-items: center;
@@ -1630,6 +1663,14 @@ html, body {
     height: 56px;
   }
 
+  .top-navbar-brand {
+    display: flex;
+  }
+
+  .top-navbar-breadcrumb {
+    display: none !important;
+  }
+
   .top-navbar-notification-btn,
   .top-navbar-theme-btn {
     display: none !important;
@@ -1789,19 +1830,12 @@ html, body {
     gap: 8px;
   }
 
+  .top-navbar-brand {
+    display: flex;
+  }
+
   .top-navbar-breadcrumb {
-    font-size: 12.5px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .top-navbar-breadcrumb-dept {
-    display: none;
-  }
-
-  .top-navbar-breadcrumb-sep {
-    display: none;
+    display: none !important;
   }
 
   .top-navbar-search {

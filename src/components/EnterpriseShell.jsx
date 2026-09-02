@@ -342,15 +342,12 @@ export default function EnterpriseShell({
           currentUser={currentUser}
           activeNav={activeNav}
           setActiveNav={setActiveNav}
-          mobileMenuOpen={mobileMenuOpen}
-          setMobileMenuOpen={setMobileMenuOpen}
           globalSearch={globalSearch}
           setGlobalSearch={setGlobalSearch}
           theme={theme}
           onToggleTheme={onToggleTheme}
           attendanceStatus={attendanceStatus}
           elapsedSeconds={elapsedSeconds}
-          onClockToggle={onClockToggle}
           onLogout={onLogout}
           showToast={showToast}
           formatTimer={formatTimer}
