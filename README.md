@@ -1,5 +1,6 @@
 # 🏛️ MONOLITH • Apex Enterprise ERP & Human Capital Platform
 
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-company--portal--kosi.vercel.app-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://company-portal-kosi.vercel.app)
 [![React](https://img.shields.io/badge/React-19.2-61DAFB?logo=react&logoColor=black)](https://react.dev/)
 [![Vite](https://img.shields.io/badge/Vite-8.2-646CFF?logo=vite&logoColor=white)](https://vitejs.dev/)
 [![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL%20Realtime-3ECF8E?logo=supabase&logoColor=white)](https://supabase.com/)
@@ -9,6 +10,7 @@
 > **A production-grade, full-stack Enterprise Resource Planning (ERP) & Human Capital Operating System.**  
 > Built with React 19, Vite, and Supabase PostgreSQL with WebSocket realtime synchronization, offline dual-write persistence, and an editorial design system.
 
+🚀 **Live Application:** [https://company-portal-kosi.vercel.app](https://company-portal-kosi.vercel.app)  
 🔗 **GitHub Repository:** [https://github.com/Kosis0/Company-Portal](https://github.com/Kosis0/Company-Portal)
 
 ---
@@ -159,11 +161,14 @@ npm run build
 
 ---
 
-## 🌐 Instant Cloud Deployment
+## 🌐 Live Cloud Deployment & Hosting
 
-This project includes zero-config deployment manifests for **Vercel** (`vercel.json`) and **Netlify** (`netlify.toml`).
+The application is deployed and available live on **Vercel**:  
+👉 **Live Preview**: [https://company-portal-kosi.vercel.app](https://company-portal-kosi.vercel.app)
 
-### Deploy to Vercel in 1-Click:
+This repository also includes zero-config deployment manifests for self-hosting on **Vercel** (`vercel.json`) and **Netlify** (`netlify.toml`):
+
+### Deploy your own copy to Vercel in 1-Click:
 1. Push or import [`Kosis0/Company-Portal`](https://github.com/Kosis0/Company-Portal) into your [Vercel Dashboard](https://vercel.com/new).
 2. Set `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` in project environment settings.
 3. Click **Deploy** — Vite builds and optimizes production bundles automatically.
