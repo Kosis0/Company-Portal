@@ -1,5 +1,4 @@
 import {
-  Menu,
   Search,
   Bell,
   ShieldCheck,
@@ -29,14 +28,6 @@ export default function TopNavbar({
   return (
     <header className="top-navbar">
       <div className="top-navbar-left">
-        <button
-          type="button"
-          className="mobile-toggle-btn"
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          aria-label="Toggle navigation drawer"
-        >
-          <Menu size={18} />
-        </button>
         <div className="top-navbar-breadcrumb">
           <span className="top-navbar-breadcrumb-dept">{currentUser.department}</span>
           <span className="top-navbar-breadcrumb-sep">/</span>
@@ -93,26 +84,22 @@ export default function TopNavbar({
           <span>{getTierLabel(currentUser.tier)}</span>
         </span>
 
-        {/* Live Attendance Clock Status */}
+        {/* Shift Status Indicator (Green = On Shift, Red = Off Shift) */}
         <div
-          className="live-shift-chip"
-          onClick={onClockToggle}
-          style={{ cursor: "pointer" }}
+          className="shift-status-indicator"
+          title={
+            attendanceStatus?.isClockedIn
+              ? `Currently On Shift • Elapsed: ${formatTimer(elapsedSeconds)}`
+              : "Currently Off Shift"
+          }
         >
           <span
-            className={`live-pulse-dot ${
-              attendanceStatus?.isClockedIn ? "active" : ""
+            className={`shift-status-dot ${
+              attendanceStatus?.isClockedIn ? "is-on-shift" : "is-off-shift"
             }`}
           />
-          <span className="live-timer-text">
-            {attendanceStatus?.isClockedIn
-              ? formatTimer(elapsedSeconds)
-              : "Off Shift"}
-          </span>
-          <span
-            style={{ fontSize: "10.5px", fontWeight: 700, opacity: 0.8 }}
-          >
-            {attendanceStatus?.isClockedIn ? "OUT" : "IN"}
+          <span className="shift-status-label">
+            {attendanceStatus?.isClockedIn ? "On Shift" : "Off Shift"}
           </span>
         </div>
 
