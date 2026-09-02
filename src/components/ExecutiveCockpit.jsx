@@ -120,7 +120,7 @@ export default function ExecutiveCockpit({
       </div>
 
       {/* Strategic Department Allocations */}
-      <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: "16px", marginBottom: "20px" }}>
+      <div className="responsive-split-grid-balanced" style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: "16px", marginBottom: "20px" }}>
         <div className="card">
           <div className="card-header">
             <span className="card-title">

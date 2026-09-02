@@ -172,7 +172,7 @@ export default function DepartmentHubs({
             </div>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: "16px" }}>
+          <div className="responsive-split-grid-balanced" style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: "16px" }}>
             <div className="card">
               <div className="card-header">
                 <span className="card-title">
@@ -298,7 +298,7 @@ export default function DepartmentHubs({
             </div>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: "16px" }}>
+          <div className="responsive-split-grid-balanced" style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: "16px" }}>
             <div className="card">
               <div className="card-header">
                 <span className="card-title">
@@ -570,7 +570,7 @@ export default function DepartmentHubs({
                   />
                 </div>
 
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                <div className="form-row-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
                   <div className="form-group">
                     <label className="form-label">Category</label>
                     <select
@@ -598,7 +598,7 @@ export default function DepartmentHubs({
                   </div>
                 </div>
 
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                <div className="form-row-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
                   <div className="form-group">
                     <label className="form-label">Assign to Employee</label>
                     <select

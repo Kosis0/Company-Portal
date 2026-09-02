@@ -10,7 +10,7 @@ export default function HMOModule({ currentUser }) {
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+      <div className="form-row-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
         <div className="card">
           <div className="card-header">
             <span className="card-title">

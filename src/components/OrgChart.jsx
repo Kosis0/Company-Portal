@@ -58,7 +58,7 @@ export default function OrgChart({ orgTree, allUsers = [], onSelectUser }) {
     }
 
     return (
-      <div key={node.id} style={{ marginLeft: depth > 0 ? "20px" : "0px", marginTop: "10px", position: "relative" }}>
+      <div key={node.id} style={{ marginLeft: depth > 0 ? "clamp(8px, 3vw, 20px)" : "0px", marginTop: "10px", position: "relative" }}>
         {depth > 0 && (
           <div
             style={{
@@ -167,7 +167,7 @@ export default function OrgChart({ orgTree, allUsers = [], onSelectUser }) {
             </div>
           </div>
 
-          <div style={{ display: "flex", alignItems: "center", gap: "16px", fontSize: "11.5px", color: "var(--text-tertiary)", paddingLeft: "34px" }}>
+          <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: "8px 16px", fontSize: "11.5px", color: "var(--text-tertiary)", paddingLeft: "34px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
               <Mail size={12} />
               <span>{node.email}</span>

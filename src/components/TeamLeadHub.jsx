@@ -225,7 +225,7 @@ export default function TeamLeadHub({
 
       {/* SUB-TAB 2: APPROVALS */}
       {activeSubTab === "approvals" && (
-        <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: "16px" }}>
+        <div className="responsive-split-grid-balanced" style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: "16px" }}>
           {/* Team Leaves Queue */}
           <div className="card">
             <div className="card-header">
@@ -368,7 +368,8 @@ export default function TeamLeadHub({
             </span>
           </div>
 
-          <div className="table-responsive">
+          {/* Desktop Table */}
+          <div className="table-responsive has-mobile-cards">
             <table className="custom-table">
               <thead>
                 <tr>
@@ -400,6 +401,35 @@ export default function TeamLeadHub({
                 ))}
               </tbody>
             </table>
+          </div>
+
+          {/* Mobile Card List */}
+          <div className="mobile-card-list">
+            {teamAttendance.map((rec, i) => (
+              <div key={i} className="mobile-data-card">
+                <div className="mobile-data-card-header">
+                  <div>
+                    <div className="mobile-data-card-title">{rec.name}</div>
+                    <div className="mobile-data-card-sub">{rec.date} • {rec.location}</div>
+                  </div>
+                  <span className="badge badge-approved">{rec.status}</span>
+                </div>
+                <div className="mobile-data-card-body">
+                  <div className="mobile-data-card-row">
+                    <span className="mobile-data-card-label">Shift Hours</span>
+                    <span className="mobile-data-card-val" style={{ fontFamily: "var(--font-mono)" }}>
+                      {rec.in} — {rec.out}
+                    </span>
+                  </div>
+                  <div className="mobile-data-card-row">
+                    <span className="mobile-data-card-label">Duration</span>
+                    <span className="mobile-data-card-val" style={{ fontWeight: 700 }}>
+                      {rec.hours}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )}

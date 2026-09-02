@@ -214,6 +214,7 @@ export default function OverviewDashboard({
 
       {/* Visualization Grid: Trend Multi-line Chart + Donut Segmented Chart */}
       <div
+        className="responsive-split-grid"
         style={{
           display: "grid",
           gridTemplateColumns: "1.4fr 1fr",
@@ -340,6 +341,7 @@ export default function OverviewDashboard({
 
       {/* Personal Quick Actions & Leaves Row */}
       <div
+        className="responsive-split-grid-balanced"
         style={{
           display: "grid",
           gridTemplateColumns: "1.2fr 1fr",
@@ -375,40 +377,69 @@ export default function OverviewDashboard({
               No leave applications submitted yet.
             </div>
           ) : (
-            <div className="table-responsive">
-              <table className="custom-table">
-                <thead>
-                  <tr>
-                    <th>Leave Type</th>
-                    <th>Dates</th>
-                    <th>Days</th>
-                    <th>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {myLeaves.slice(0, 3).map((req) => (
-                    <tr key={req.id}>
-                      <td style={{ fontWeight: 600 }}>{req.type}</td>
-                      <td>{req.dates}</td>
-                      <td>{req.days} days</td>
-                      <td>
-                        <span
-                          className={`badge ${
-                            req.status === "Approved"
-                              ? "badge-sage"
-                              : req.status.includes("Pending")
-                              ? "badge-pending"
-                              : "badge-rejected"
-                          }`}
-                        >
-                          {req.status}
-                        </span>
-                      </td>
+            <>
+              {/* Desktop Table */}
+              <div className="table-responsive has-mobile-cards">
+                <table className="custom-table">
+                  <thead>
+                    <tr>
+                      <th>Leave Type</th>
+                      <th>Dates</th>
+                      <th>Days</th>
+                      <th>Status</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {myLeaves.slice(0, 3).map((req) => (
+                      <tr key={req.id}>
+                        <td style={{ fontWeight: 600 }}>{req.type}</td>
+                        <td>{req.dates}</td>
+                        <td>{req.days} days</td>
+                        <td>
+                          <span
+                            className={`badge ${
+                              req.status === "Approved"
+                                ? "badge-sage"
+                                : req.status.includes("Pending")
+                                ? "badge-pending"
+                                : "badge-rejected"
+                            }`}
+                          >
+                            {req.status}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Mobile Card List */}
+              <div className="mobile-card-list">
+                {myLeaves.slice(0, 3).map((req) => (
+                  <div key={req.id} className="mobile-data-card" style={{ padding: "10px 12px" }}>
+                    <div className="mobile-data-card-header">
+                      <span style={{ fontWeight: 700, fontSize: "13px" }}>{req.type}</span>
+                      <span
+                        className={`badge ${
+                          req.status === "Approved"
+                            ? "badge-sage"
+                            : req.status.includes("Pending")
+                            ? "badge-pending"
+                            : "badge-rejected"
+                        }`}
+                      >
+                        {req.status}
+                      </span>
+                    </div>
+                    <div style={{ fontSize: "12px", color: "var(--text-secondary)", display: "flex", justifyContent: "space-between" }}>
+                      <span>{req.dates}</span>
+                      <span style={{ fontWeight: 600 }}>{req.days} days</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
           )}
         </div>
 

@@ -139,6 +139,19 @@ export default function Login({ onLogin, onRegister }) {
       {/* Right Form Panel */}
       <div className="login-form-panel">
         <div className="login-form-box">
+          {/* Mobile Brand Header (Visible on mobile when hero panel is hidden) */}
+          <div className="login-mobile-brand">
+            <div className="login-hero-logo">M</div>
+            <div>
+              <h2 style={{ fontSize: "16px", fontWeight: 700, color: "var(--text-primary)", letterSpacing: "-0.4px" }}>
+                MONOLITH ERP
+              </h2>
+              <p style={{ fontSize: "11px", color: "var(--text-tertiary)", fontWeight: 500 }}>
+                Human Capital & Operations Platform
+              </p>
+            </div>
+          </div>
+
           <div className="login-form-header">
             <h2>{mode === "signin" ? "Sign In to Workspace" : "Create Staff Account"}</h2>
             <p>{mode === "signin" ? "Enter your corporate credentials to access your portal." : "Register a verified account in the company directory."}</p>
@@ -245,12 +258,41 @@ export default function Login({ onLogin, onRegister }) {
               </button>
 
               <div style={{ marginTop: "16px", padding: "10px 12px", borderRadius: "var(--radius-sm)", backgroundColor: "var(--bg-surface-elevated)", border: "1px solid var(--border-subtle)", fontSize: "11.5px", color: "var(--text-secondary)" }}>
-                <div style={{ fontWeight: 600, color: "var(--text-primary)", marginBottom: "4px" }}>5-Tier Enterprise Seed Accounts (Password: <span style={{ fontFamily: "var(--font-mono)" }}>password123</span>):</div>
-                <div>• <strong>Tier 5 • CEO / C-Suite:</strong> <span style={{ fontFamily: "var(--font-mono)" }}>ceo@company.com</span></div>
-                <div>• <strong>Tier 4 • VP of People / Admin:</strong> <span style={{ fontFamily: "var(--font-mono)" }}>admin@company.com</span></div>
-                <div>• <strong>Tier 4 • VP of Engineering:</strong> <span style={{ fontFamily: "var(--font-mono)" }}>vpeng@company.com</span></div>
-                <div>• <strong>Tier 3 • Tech Lead / Manager:</strong> <span style={{ fontFamily: "var(--font-mono)" }}>sarah.chen@company.com</span></div>
-                <div>• <strong>Tier 1 • Developer Intern / Staff:</strong> <span style={{ fontFamily: "var(--font-mono)" }}>employee@company.com</span></div>
+                <div style={{ fontWeight: 600, color: "var(--text-primary)", marginBottom: "6px" }}>Quick Test Accounts (tap to autofill):</div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                  {[
+                    { tier: "Tier 5 • CEO", email: "ceo@company.com" },
+                    { tier: "Tier 4 • VP Admin", email: "admin@company.com" },
+                    { tier: "Tier 4 • VP Eng", email: "vpeng@company.com" },
+                    { tier: "Tier 3 • Tech Lead", email: "sarah.chen@company.com" },
+                    { tier: "Tier 1 • Developer Staff", email: "employee@company.com" },
+                  ].map((acc) => (
+                    <button
+                      key={acc.email}
+                      type="button"
+                      onClick={() => {
+                        setEmail(acc.email);
+                        setPassword("password123");
+                      }}
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        padding: "5px 8px",
+                        borderRadius: "var(--radius-xs)",
+                        border: email === acc.email ? "1px solid var(--brand-sage)" : "1px solid var(--border-default)",
+                        backgroundColor: email === acc.email ? "var(--bg-surface)" : "var(--bg-canvas)",
+                        cursor: "pointer",
+                        textAlign: "left",
+                        fontSize: "11px",
+                        color: "var(--text-primary)",
+                      }}
+                    >
+                      <span><strong>{acc.tier}:</strong> <span style={{ fontFamily: "var(--font-mono)" }}>{acc.email}</span></span>
+                      <span style={{ fontSize: "10px", color: "var(--brand-sage)", fontWeight: 700 }}>USE</span>
+                    </button>
+                  ))}
+                </div>
               </div>
             </form>
           )}
@@ -288,7 +330,7 @@ export default function Login({ onLogin, onRegister }) {
                 </div>
               </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+              <div className="form-row-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
                 <div className="form-group">
                   <label className="form-label">Job Title</label>
                   <div className="input-icon-wrapper">
@@ -319,7 +361,7 @@ export default function Login({ onLogin, onRegister }) {
                 </div>
               </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+              <div className="form-row-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
                 <div className="form-group">
                   <label className="form-label">Account Role</label>
                   <select

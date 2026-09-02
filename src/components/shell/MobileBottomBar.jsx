@@ -18,6 +18,14 @@ export default function MobileBottomBar({
     l.status.includes("Pending")
   ).length;
 
+  const isSubModule = ![
+    "overview",
+    "dashboard",
+    "attendance",
+    "team_hub",
+    "org_chart",
+  ].includes(activeNav);
+
   return (
     <nav className="mobile-bottom-bar" aria-label="Mobile Navigation">
       <button
@@ -75,12 +83,18 @@ export default function MobileBottomBar({
 
       <button
         type="button"
-        className="mobile-bottom-item"
+        className={`mobile-bottom-item ${isSubModule ? "active" : ""}`}
         onClick={() => setMobileMenuOpen(true)}
         aria-label="Open full menu"
       >
         <Menu className="mobile-bottom-icon" />
         <span className="mobile-bottom-label">Menu</span>
+        {isSubModule && (
+          <span
+            className="mobile-bottom-badge"
+            style={{ backgroundColor: "var(--accent-primary)" }}
+          />
+        )}
       </button>
     </nav>
   );

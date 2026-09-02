@@ -125,6 +125,7 @@ export default function InventoryDashboard({
 
       {/* 2-Column Grid: Stock Level Alerts (with Sage 'Create PO' buttons) + Connected Shipment Timeline */}
       <div
+        className="responsive-split-grid"
         style={{
           display: "grid",
           gridTemplateColumns: "1.3fr 1fr",

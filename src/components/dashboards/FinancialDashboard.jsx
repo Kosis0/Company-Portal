@@ -147,6 +147,7 @@ export default function FinancialDashboard({
 
       {/* Visualizations: Cash Flow Forecast + Top Operating Expenses */}
       <div
+        className="responsive-split-grid"
         style={{
           display: "grid",
           gridTemplateColumns: "1.3fr 1fr",

@@ -27,7 +27,7 @@ export default function ProfileModule({
         </button>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: "16px" }}>
+      <div className="responsive-split-grid-asymmetric" style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: "16px" }}>
         <div
           className="card"
           style={{

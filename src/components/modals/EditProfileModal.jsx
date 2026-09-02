@@ -53,7 +53,7 @@ export default function EditProfileModal({
               />
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+            <div className="form-row-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
               <div className="form-group">
                 <label className="form-label">Phone Number</label>
                 <input

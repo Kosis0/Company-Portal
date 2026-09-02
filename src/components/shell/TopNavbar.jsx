@@ -38,8 +38,8 @@ export default function TopNavbar({
           <Menu size={18} />
         </button>
         <div className="top-navbar-breadcrumb">
-          <span>{currentUser.department}</span>
-          <span>/</span>
+          <span className="top-navbar-breadcrumb-dept">{currentUser.department}</span>
+          <span className="top-navbar-breadcrumb-sep">/</span>
           <span className="current">
             {activeNav === "dashboard" || activeNav === "overview"
               ? "ORGANIZATION OVERVIEW"
@@ -79,9 +79,9 @@ export default function TopNavbar({
           <span className="notification-dot" />
         </button>
 
-        {/* Live Tier Chip */}
+        {/* Live Tier Chip (hidden on small phone screens) */}
         <span
-          className="badge badge-neutral"
+          className="badge badge-neutral top-navbar-tier-badge"
           style={{
             fontSize: "11px",
             display: "flex",
