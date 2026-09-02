@@ -1,6 +1,7 @@
 # 🏛️ MONOLITH • Apex Enterprise ERP & Human Capital Platform
 
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-company--portal--kosi.vercel.app-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://company-portal-kosi.vercel.app)
+[![CI Quality Gate](https://github.com/Kosis0/Company-Portal/actions/workflows/ci.yml/badge.svg)](https://github.com/Kosis0/Company-Portal/actions/workflows/ci.yml)
 [![React](https://img.shields.io/badge/React-19.2-61DAFB?logo=react&logoColor=black)](https://react.dev/)
 [![Vite](https://img.shields.io/badge/Vite-8.2-646CFF?logo=vite&logoColor=white)](https://vitejs.dev/)
 [![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL%20Realtime-3ECF8E?logo=supabase&logoColor=white)](https://supabase.com/)
