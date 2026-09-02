@@ -725,6 +725,8 @@ html, body {
   color: var(--text-primary);
   user-select: none;
   cursor: default;
+  margin-left: auto;
+  margin-right: 10px;
 }
 
 .shift-status-dot {
@@ -1658,8 +1660,14 @@ html, body {
   }
 
   .top-navbar {
+    position: relative;
     padding: 0 16px;
     height: 56px;
+  }
+
+  .top-navbar-left {
+    min-width: 0;
+    flex: 0 0 auto;
   }
 
   .top-navbar-brand-btn {
@@ -1668,6 +1676,17 @@ html, body {
 
   .top-navbar-breadcrumb {
     display: none !important;
+  }
+
+  .shift-status-indicator {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    margin: 0;
+  }
+
+  .top-navbar-right {
+    flex: 0 0 auto;
   }
 
   .top-navbar-notification-btn,
@@ -1816,17 +1835,21 @@ html, body {
     display: flex;
   }
 
-  /* Streamlined Mobile Navbar */
+  /* Streamlined Mobile Navbar: 3-Point Symmetrical Layout */
   .top-navbar {
-    padding: 0 12px;
+    position: relative;
+    padding: 0 16px;
     height: 54px;
-    gap: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
   }
 
   .top-navbar-left {
     min-width: 0;
-    flex: 1;
-    gap: 8px;
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
   }
 
   .top-navbar-brand-btn {
@@ -1854,11 +1877,23 @@ html, body {
   }
 
   .top-navbar-right {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
     gap: 6px;
-    flex-shrink: 0;
   }
 
-  .shift-status-indicator,
+  .shift-status-indicator {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    margin: 0;
+    padding: 4px 11px;
+    font-size: 11px;
+    gap: 5.5px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  }
+
   .live-shift-chip {
     padding: 3px 8px;
     font-size: 11px;

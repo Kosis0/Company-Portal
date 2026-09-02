@@ -62,6 +62,25 @@ export default function TopNavbar({
         </div>
       </div>
 
+      {/* Shift Status Indicator: Centered symmetrically on mobile */}
+      <div
+        className="shift-status-indicator"
+        title={
+          attendanceStatus?.isClockedIn
+            ? `Currently On Shift • Elapsed: ${formatTimer(elapsedSeconds)}`
+            : "Currently Off Shift"
+        }
+      >
+        <span
+          className={`shift-status-dot ${
+            attendanceStatus?.isClockedIn ? "is-on-shift" : "is-off-shift"
+          }`}
+        />
+        <span className="shift-status-label">
+          {attendanceStatus?.isClockedIn ? "On Shift" : "Off Shift"}
+        </span>
+      </div>
+
       <div className="top-navbar-right">
         {/* Notification Bell with indicator dot */}
         <button
@@ -92,25 +111,6 @@ export default function TopNavbar({
           <ShieldCheck size={13} color="var(--brand-sage)" />
           <span>{getTierLabel(currentUser.tier)}</span>
         </span>
-
-        {/* Shift Status Indicator (Green = On Shift, Red = Off Shift) */}
-        <div
-          className="shift-status-indicator"
-          title={
-            attendanceStatus?.isClockedIn
-              ? `Currently On Shift • Elapsed: ${formatTimer(elapsedSeconds)}`
-              : "Currently Off Shift"
-          }
-        >
-          <span
-            className={`shift-status-dot ${
-              attendanceStatus?.isClockedIn ? "is-on-shift" : "is-off-shift"
-            }`}
-          />
-          <span className="shift-status-label">
-            {attendanceStatus?.isClockedIn ? "On Shift" : "Off Shift"}
-          </span>
-        </div>
 
         {/* Theme Toggle Button */}
         <button
