@@ -66,7 +66,7 @@ export default function TopNavbar({
         {/* Notification Bell with indicator dot */}
         <button
           type="button"
-          className="notification-btn"
+          className="notification-btn top-navbar-notification-btn"
           title="Notifications"
           aria-label="Notifications"
           onClick={() =>
@@ -119,7 +119,7 @@ export default function TopNavbar({
         {/* Theme Toggle Button */}
         <button
           type="button"
-          className="btn btn-secondary btn-icon-only"
+          className="btn btn-secondary btn-icon-only top-navbar-theme-btn"
           onClick={onToggleTheme}
           title={`Switch to ${theme === "light" ? "Dark" : "Light"} mode`}
           aria-label="Toggle theme"
@@ -144,7 +144,7 @@ export default function TopNavbar({
         {/* Logout Button */}
         <button
           type="button"
-          className="btn btn-secondary btn-icon-only"
+          className="btn btn-secondary btn-icon-only top-navbar-logout-btn"
           onClick={onLogout}
           title="Sign Out"
           aria-label="Sign Out"

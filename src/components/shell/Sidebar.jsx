@@ -15,6 +15,9 @@ import {
   Crown,
   LogOut,
   X,
+  Bell,
+  Moon,
+  Sun,
 } from "lucide-react";
 
 export default function Sidebar({
@@ -27,6 +30,9 @@ export default function Sidebar({
   myLeaves = [],
   myClaims = [],
   teamLeaves = [],
+  theme,
+  onToggleTheme,
+  showToast,
 }) {
   const isManager = Boolean(currentUser.tier >= 3);
   const isDirector = Boolean(currentUser.tier >= 4);
@@ -240,8 +246,54 @@ export default function Sidebar({
           )}
         </div>
 
-        {/* Sidebar Footer User Tile */}
+        {/* Sidebar Footer User Tile & System Quick Actions */}
         <div className="sidebar-footer">
+          {/* Quick Utility Actions: Notifications & Theme Mode Toggle */}
+          <div className="sidebar-quick-actions">
+            <button
+              type="button"
+              className="sidebar-quick-action-btn"
+              onClick={() => {
+                if (showToast) {
+                  showToast(
+                    "3 Active Alerts: 1 Overdue Customer Invoice, 2 Low Stock Threshold Alerts, 1 Pending Team Leave."
+                  );
+                }
+                setMobileMenuOpen(false);
+              }}
+              title="3 Active System Alerts"
+              aria-label="View system notifications"
+            >
+              <div className="sidebar-quick-action-icon-wrap">
+                <Bell size={14} />
+                <span className="notification-dot" style={{ top: "-2px", right: "-3px" }} />
+              </div>
+              <span>Alerts</span>
+              <span
+                className="badge badge-terracotta"
+                style={{
+                  fontSize: "10px",
+                  padding: "1px 5px",
+                  borderRadius: "var(--radius-full)",
+                  lineHeight: 1.2,
+                }}
+              >
+                3
+              </span>
+            </button>
+
+            <button
+              type="button"
+              className="sidebar-quick-action-btn"
+              onClick={onToggleTheme}
+              title={`Switch to ${theme === "light" ? "Dark" : "Light"} mode`}
+              aria-label="Toggle theme mode"
+            >
+              {theme === "light" ? <Moon size={14} /> : <Sun size={14} />}
+              <span>{theme === "light" ? "Dark" : "Light"}</span>
+            </button>
+          </div>
+
           <div className="user-profile-tile">
             <div className="user-avatar-initials">
               {currentUser.avatarInitials ||

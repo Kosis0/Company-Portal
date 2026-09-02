@@ -331,6 +331,9 @@ export default function EnterpriseShell({
         myLeaves={myLeaves}
         myClaims={myClaims}
         teamLeaves={teamLeaves}
+        theme={theme}
+        onToggleTheme={onToggleTheme}
+        showToast={showToast}
       />
 
       {/* Main Workspace Area */}
