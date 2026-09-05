@@ -176,6 +176,15 @@ This repository also includes zero-config deployment manifests for self-hosting 
 
 ---
 
+## 🧑‍💻 Author
+**Kosi Udeh (Udeh Kosisochukwu Emmanuel)**  
+*Full-Stack Developer & Systems Architect*  
+* **Portfolio:** [portfolio-lac-seven-pykd0ipign.vercel.app](https://portfolio-lac-seven-pykd0ipign.vercel.app)  
+* **GitHub:** [@Kosis0](https://github.com/Kosis0)  
+* **Contact:** [kosiudeh627@gmail.com](mailto:kosiudeh627@gmail.com) | [+234 911 795 0895](https://wa.me/2349117950895)
+
+---
+
 ## 📜 License
 
 Distributed under the **MIT License**. See `LICENSE` for details.
