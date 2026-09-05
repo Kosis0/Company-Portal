@@ -727,6 +727,7 @@ html, body {
   cursor: default;
   margin-left: auto;
   margin-right: 10px;
+  font-variant-numeric: tabular-nums;
 }
 
 .shift-status-dot {
@@ -755,6 +756,8 @@ html, body {
 
 .shift-status-label {
   line-height: 1;
+  font-variant-numeric: tabular-nums;
+  font-family: var(--font-mono);
 }
 
 /* Live Attendance Shift Chip (Legacy / Component) */

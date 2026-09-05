@@ -77,7 +77,9 @@ export default function TopNavbar({
           }`}
         />
         <span className="shift-status-label">
-          {attendanceStatus?.isClockedIn ? "On Shift" : "Off Shift"}
+          {attendanceStatus?.isClockedIn
+            ? `On Shift • ${formatTimer(elapsedSeconds)}`
+            : "Off Shift"}
         </span>
       </div>
 
